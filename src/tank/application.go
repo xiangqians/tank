@@ -22,7 +22,7 @@ func init() {
 	graphicsMapChan <- graphicsMap
 }
 
-func clean0() {
+func clean() {
 	// 阻塞获取 chanel 中的 map
 	graphicsMap := <-graphicsMapChan
 
@@ -52,13 +52,7 @@ func clean0() {
 	}
 }
 
-func clean() {
-	for {
-		clean0()
-	}
-}
-
-func draw0() {
+func draw() {
 	// 阻塞获取 chanel 中的 map
 	graphicsMap := <-graphicsMapChan
 
@@ -76,13 +70,6 @@ func draw0() {
 
 	// 刷新
 	termbox.Flush()
-}
-
-func draw() {
-	for {
-		draw0()
-		time.Sleep(30 * time.Millisecond)
-	}
 }
 
 func addGraphics(graphics Graphics) {
@@ -120,10 +107,20 @@ func Run() {
 	graphics()
 
 	// 绘制
-	go draw()
+	go func() {
+		for {
+			draw()
+			time.Sleep(30 * time.Millisecond)
+		}
+	}()
 
 	// 清理
-	go clean()
+	go func() {
+		for {
+			clean()
+			time.Sleep(100 * time.Millisecond)
+		}
+	}()
 
 	// termbox事件(如,键盘按键) channel
 	eventChan := make(chan termbox.Event)

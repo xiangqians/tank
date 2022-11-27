@@ -17,3 +17,9 @@ $ go get -u github.com/nsf/termbox-go
 ```shell
 $ go get github.com/google/uuid
 ```
+
+# go run
+
+```shell
+$ go run main.go
+```
