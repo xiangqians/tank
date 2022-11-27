@@ -85,6 +85,19 @@ func draw() {
 	}
 }
 
+func addGraphics(graphics Graphics) {
+	graphicsMap[graphics.Id()] = graphics
+}
+
+var tank *Tank
+
+func graphics() {
+	addGraphics(CreateBullet(&Location{10, 10}, DirectionRight, SpeedNormal))
+
+	tank = CreateTank(Location{20, 20}, DirectionRight, SpeedNormal)
+	addGraphics(tank)
+}
+
 func Run() {
 
 	// 初始化 termbox
@@ -104,8 +117,7 @@ func Run() {
 	fmt.Printf("height \t= %v\n", height)
 
 	//
-	bullet := CreateBullet(&Location{x: 10, y: 10}, DirectionRight, SpeedNormal)
-	graphicsMap[bullet.id] = bullet
+	graphics()
 
 	// 绘制
 	go draw()
@@ -132,18 +144,26 @@ loop:
 				// Esc按键
 				case termbox.KeyEsc:
 					break loop
+
 				// 向上键箭头按键
 				case termbox.KeyArrowUp:
+					tank.Move(DirectionUp)
+
 				// 向下键箭头按键
 				case termbox.KeyArrowDown:
+					tank.Move(DirectionDown)
+
 				// 向左键箭头按键
 				case termbox.KeyArrowLeft:
+					tank.Move(DirectionLeft)
+
 				// 向右键箭头按键
 				case termbox.KeyArrowRight:
+					tank.Move(DirectionRight)
 				}
 			}
 		default:
-			time.Sleep(10 * time.Millisecond)
+			time.Sleep(2 * time.Millisecond)
 		}
 	}
 

@@ -6,7 +6,6 @@
 package tank
 
 import (
-	"errors"
 	"github.com/nsf/termbox-go"
 )
 
@@ -16,7 +15,6 @@ type Bullet struct {
 }
 
 func CreateBullet(location *Location, direction Direction, speed Speed) *Bullet {
-
 	return &Bullet{
 		AbsGraphics: &AbsGraphics{
 			id:        "bullet_" + Uuid(),
@@ -31,7 +29,7 @@ func CreateBullet(location *Location, direction Direction, speed Speed) *Bullet 
 func (bullet *Bullet) Draw() error {
 
 	if err := bullet.AbsGraphics.Draw(); err != nil {
-		return errors.New("the bullet not alive")
+		return err
 	}
 
 	location := bullet.location

@@ -5,6 +5,7 @@ package tank
 
 import (
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
 )
 
@@ -37,6 +38,9 @@ type Location struct {
 
 // 图形
 type Graphics interface {
+	// id
+	Id() string
+
 	// 是否存活
 	Alive() bool
 
@@ -52,8 +56,16 @@ type AbsGraphics struct {
 	alive     bool      // 是否存活
 }
 
+func (absGraphics *AbsGraphics) Id() string {
+	return absGraphics.id
+}
+
 func (absGraphics *AbsGraphics) Direction() Direction {
 	return absGraphics.direction
+}
+
+func (absGraphics *AbsGraphics) SetDirection(direction Direction) {
+	absGraphics.direction = direction
 }
 
 func (absGraphics *AbsGraphics) Alive() bool {
@@ -62,7 +74,7 @@ func (absGraphics *AbsGraphics) Alive() bool {
 
 func (absGraphics *AbsGraphics) Draw() error {
 	if !absGraphics.alive {
-		return errors.New("the bullet not alive")
+		return errors.New(fmt.Sprintf("the %v not alive", absGraphics.Id()))
 	}
 	return nil
 }

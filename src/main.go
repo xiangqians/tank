@@ -1,3 +1,5 @@
+// @author xiangqian
+// @date 23:16 2022/11/26
 package main
 
 import (
@@ -9,3 +11,5 @@ func main() {
 	tank.Run()
 
 }
+
+// $ go build main.go
