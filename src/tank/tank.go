@@ -11,6 +11,7 @@ import (
 
 type Tank struct {
 	*AbsGraphics
+
 	body []*Location // 坦克体
 }
 
@@ -20,7 +21,7 @@ func CreateTank(location Location, direction Direction, speed Speed) *Tank {
 			id:        "tank_" + Uuid(),
 			direction: direction,
 			speed:     speed,
-			alive:     true,
+			status:    StatusNew,
 		},
 		body: CreateTankBody(location, direction),
 	}
@@ -150,7 +151,7 @@ func (tank *Tank) Move(direction Direction) {
 
 // 开火
 func (tank *Tank) Fire() {
-	addGraphics(CreateBullet(tank.Location(), tank.direction, SpeedNormal))
+	addGraphics(CreateBullet(tank, SpeedNormal))
 }
 
 func (tank *Tank) Draw() error {

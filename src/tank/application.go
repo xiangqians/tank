@@ -5,7 +5,6 @@
 package tank
 
 import (
-	"fmt"
 	"github.com/nsf/termbox-go"
 	"time"
 )
@@ -15,6 +14,9 @@ var graphicsMap map[string]Graphics
 
 // 图形Map channel
 var graphicsMapChan chan map[string]Graphics
+
+// 当前用户坦克
+var tank *Tank
 
 func init() {
 	graphicsMap = make(map[string]Graphics, 8)
@@ -34,7 +36,7 @@ func clean() {
 	ids = nil
 	index := 0
 	for id, graphics := range graphicsMap {
-		if !graphics.Alive() {
+		if graphics.Status() == StatusTerm {
 			if ids == nil {
 				ids = make([]string, len(graphicsMap))
 			}
@@ -63,7 +65,7 @@ func draw() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
 	for _, graphics := range graphicsMap {
-		if graphics.Alive() {
+		if graphics.Status() != StatusTerm {
 			graphics.Draw()
 		}
 	}
@@ -75,8 +77,6 @@ func draw() {
 func addGraphics(graphics Graphics) {
 	graphicsMap[graphics.Id()] = graphics
 }
-
-var tank *Tank
 
 func graphics() {
 	tank = CreateTank(Location{20, 20}, DirectionRight, SpeedNormal)
@@ -97,9 +97,9 @@ func Run() {
 	// 获取当前窗口宽度和高度
 	// -→ x
 	// ↓ y
-	width, height := termbox.Size()
-	fmt.Printf("width \t= %v\n", width)
-	fmt.Printf("height \t= %v\n", height)
+	//width, height := termbox.Size()
+	//fmt.Printf("width \t= %v\n", width)
+	//fmt.Printf("height \t= %v\n", height)
 
 	//
 	graphics()

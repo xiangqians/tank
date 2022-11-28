@@ -13,6 +13,7 @@ import (
 type (
 	Direction int8 // 方向
 	Speed     int8 // 速度
+	Status    int8 // 状态
 )
 
 // 方向
@@ -30,6 +31,13 @@ const (
 	SpeedFast
 )
 
+// 状态
+const (
+	StatusNew  Status = iota // 初始化
+	StatusRun                // 运行（执行）
+	StatusTerm               // 终止
+)
+
 // 位置信息
 type Location struct {
 	x int
@@ -41,8 +49,8 @@ type Graphics interface {
 	// id
 	Id() string
 
-	// 是否存活
-	Alive() bool
+	// 状态
+	Status() Status
 
 	// 绘制
 	Draw() error
@@ -53,7 +61,7 @@ type AbsGraphics struct {
 	id        string    // id
 	direction Direction // 方向
 	speed     Speed     // 速度
-	alive     bool      // 是否存活
+	status    Status    // 是否存活
 }
 
 func (absGraphics *AbsGraphics) Id() string {
@@ -68,13 +76,13 @@ func (absGraphics *AbsGraphics) SetDirection(direction Direction) {
 	absGraphics.direction = direction
 }
 
-func (absGraphics *AbsGraphics) Alive() bool {
-	return absGraphics.alive
+func (absGraphics *AbsGraphics) Status() Status {
+	return absGraphics.status
 }
 
 func (absGraphics *AbsGraphics) Draw() error {
-	if !absGraphics.alive {
-		return errors.New(fmt.Sprintf("the %v not alive", absGraphics.Id()))
+	if absGraphics.status == StatusTerm {
+		return errors.New(fmt.Sprintf("the %v has been terminated", absGraphics.Id()))
 	}
 	return nil
 }
