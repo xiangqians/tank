@@ -47,7 +47,7 @@ func clean() {
 		for i := 0; i < index; i++ {
 			id := ids[i]
 			delete(graphicsMap, id)
-			fmt.Printf("delete %v\n", id)
+			//fmt.Printf("delete %v\n", id)
 		}
 	}
 }
@@ -79,8 +79,6 @@ func addGraphics(graphics Graphics) {
 var tank *Tank
 
 func graphics() {
-	addGraphics(CreateBullet(&Location{10, 10}, DirectionRight, SpeedNormal))
-
 	tank = CreateTank(Location{20, 20}, DirectionRight, SpeedNormal)
 	addGraphics(tank)
 }
@@ -157,7 +155,12 @@ loop:
 				// 向右键箭头按键
 				case termbox.KeyArrowRight:
 					tank.Move(DirectionRight)
+
+				// 开火
+				case termbox.KeySpace:
+					tank.Fire()
 				}
+
 			}
 		default:
 			time.Sleep(2 * time.Millisecond)

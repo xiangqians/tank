@@ -14,7 +14,7 @@ type Bullet struct {
 	location *Location // 子弹位置
 }
 
-func CreateBullet(location *Location, direction Direction, speed Speed) *Bullet {
+func CreateBullet(location Location, direction Direction, speed Speed) *Bullet {
 	return &Bullet{
 		AbsGraphics: &AbsGraphics{
 			id:        "bullet_" + Uuid(),
@@ -22,7 +22,7 @@ func CreateBullet(location *Location, direction Direction, speed Speed) *Bullet 
 			speed:     speed,
 			alive:     true,
 		},
-		location: location,
+		location: &Location{location.x, location.y},
 	}
 }
 
@@ -33,7 +33,7 @@ func (bullet *Bullet) Draw() error {
 	}
 
 	location := bullet.location
-	termbox.SetCell(location.x, location.y, 'o', termbox.ColorRed, termbox.ColorDefault)
+	termbox.SetCell(location.x, location.y, '⬛', termbox.ColorRed, termbox.ColorRed)
 	switch bullet.direction {
 	case DirectionUp:
 		location.y -= 1

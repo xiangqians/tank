@@ -11,5 +11,3 @@ func main() {
 	tank.Run()
 
 }
-
-// $ go build main.go

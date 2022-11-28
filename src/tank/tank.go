@@ -5,7 +5,9 @@
 // @date 10:58 2022/11/27
 package tank
 
-import "github.com/nsf/termbox-go"
+import (
+	"github.com/nsf/termbox-go"
+)
 
 type Tank struct {
 	*AbsGraphics
@@ -144,6 +146,11 @@ func (tank *Tank) Move(direction Direction) {
 		}
 	}
 
+}
+
+// 开火
+func (tank *Tank) Fire() {
+	addGraphics(CreateBullet(tank.Location(), tank.direction, SpeedNormal))
 }
 
 func (tank *Tank) Draw() error {
