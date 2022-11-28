@@ -29,10 +29,11 @@ func CreateBullet(tank *Tank, speed Speed) *Bullet {
 		location: &Location{location.x, location.y},
 	}
 }
+
 func (bullet *Bullet) check() {
 	width, height := termbox.Size()
 	location := bullet.location
-	if location.x <= 0 || location.x >= width ||
+	if location.x <= infoBar.width+1 || location.x >= width ||
 		location.y <= 0 || location.y >= height {
 		bullet.status = StatusTerm
 	}
@@ -46,7 +47,7 @@ func (bullet *Bullet) Draw() error {
 	location := bullet.location
 	termbox.SetCell(location.x, location.y, '⬛', termbox.ColorRed, termbox.ColorRed)
 
-	// 如果是当前用户所发射的子弹，那么由当前用户设置子弹
+	// 如果是当前用户所发射的子弹，那么由当前用户轮询设置子弹位置
 	if bullet.tankId == tank.id && bullet.status == StatusNew {
 		go func() {
 			bullet.status = StatusRun

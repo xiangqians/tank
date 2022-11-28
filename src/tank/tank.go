@@ -119,7 +119,7 @@ func (tank *Tank) Move(direction Direction) {
 
 	location := *tank.body[0]
 	width, height := termbox.Size()
-	if location.x <= 0 || location.x+2 >= width ||
+	if location.x <= infoBar.width+2 || location.x+2 >= width ||
 		location.y <= 0 || location.y+1 >= height {
 		return
 	}

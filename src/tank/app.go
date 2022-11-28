@@ -18,6 +18,9 @@ var graphicsMapChan chan map[string]Graphics
 // 当前用户坦克
 var tank *Tank
 
+// 信息栏
+var infoBar *InfoBar
+
 func init() {
 	graphicsMap = make(map[string]Graphics, 8)
 	graphicsMapChan = make(chan map[string]Graphics, 1)
@@ -79,8 +82,11 @@ func addGraphics(graphics Graphics) {
 }
 
 func graphics() {
-	tank = CreateTank(Location{20, 20}, DirectionRight, SpeedNormal)
+	tank = CreateTank(Location{40, 10}, DirectionUp, SpeedNormal)
 	addGraphics(tank)
+
+	infoBar = CreateInfoBar(20)
+	addGraphics(infoBar)
 }
 
 func Run() {

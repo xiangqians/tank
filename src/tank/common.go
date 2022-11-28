@@ -61,7 +61,8 @@ type AbsGraphics struct {
 	id        string    // id
 	direction Direction // 方向
 	speed     Speed     // 速度
-	status    Status    // 是否存活
+	status    Status    // 状态
+	hp        int8      // 生命值
 }
 
 func (absGraphics *AbsGraphics) Id() string {
@@ -78,6 +79,10 @@ func (absGraphics *AbsGraphics) SetDirection(direction Direction) {
 
 func (absGraphics *AbsGraphics) Status() Status {
 	return absGraphics.status
+}
+
+func (absGraphics *AbsGraphics) HP() int8 {
+	return absGraphics.hp
 }
 
 func (absGraphics *AbsGraphics) Draw() error {
