@@ -1,12 +1,19 @@
-// run
-//
+// application
 // @author xiangqian
-// @date 01:09 2022/11/27
+// @date 22:22 2022/11/29
 package tank
 
 import (
-	"github.com/nsf/termbox-go"
+	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/inpututil"
+	"log"
 	"time"
+)
+
+const (
+	// 1280 * 720
+	screenWidth  = 1280
+	screenHeight = 720
 )
 
 // 图形Map
@@ -16,161 +23,97 @@ var graphicsMap map[string]Graphics
 var graphicsMapChan chan map[string]Graphics
 
 // 当前用户坦克
-var tank *Tank
-
-// 信息栏
-var infoBar *InfoBar
+var pTank *Tank
 
 func init() {
 	graphicsMap = make(map[string]Graphics, 8)
 	graphicsMapChan = make(chan map[string]Graphics, 1)
 	graphicsMapChan <- graphicsMap
-}
 
-func clean() {
-	// 阻塞获取 chanel 中的 map
-	graphicsMap := <-graphicsMapChan
-
-	// 再将 map 添加到 channel
-	defer func() { graphicsMapChan <- graphicsMap }()
-
-	// 定义id切片（slice）
-	var ids []string
-	ids = nil
-	index := 0
-	for id, graphics := range graphicsMap {
-		if graphics.Status() == StatusTerm {
-			if ids == nil {
-				ids = make([]string, len(graphicsMap))
-			}
-			ids[index] = id
-			index++
-		}
-	}
-
-	if ids != nil {
-		for i := 0; i < index; i++ {
-			id := ids[i]
-			delete(graphicsMap, id)
-			//fmt.Printf("delete %v\n", id)
-		}
-	}
-}
-
-func draw() {
-	// 阻塞获取 chanel 中的 map
-	graphicsMap := <-graphicsMapChan
-
-	// 再将 map 添加到 channel
-	defer func() { graphicsMapChan <- graphicsMap }()
-
-	// 清除界面
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-
-	for _, graphics := range graphicsMap {
-		if graphics.Status() != StatusTerm {
-			graphics.Draw()
-		}
-	}
-
-	// 刷新
-	termbox.Flush()
+	pTank = CreateTank(Location{100, 100}, DirectionRight, SpeedNormal)
+	addGraphics(pTank)
 }
 
 func addGraphics(graphics Graphics) {
 	graphicsMap[graphics.Id()] = graphics
 }
 
-func graphics() {
-	tank = CreateTank(Location{40, 10}, DirectionUp, SpeedNormal)
-	addGraphics(tank)
+type Game struct {
+	prevKeyPressedUnixNano int64
+	curKeyPressedUnixNano  int64
+}
 
-	infoBar = CreateInfoBar(20)
-	addGraphics(infoBar)
+func (game *Game) Update(screen *ebiten.Image) error {
+
+	// up
+	if game.IsKeyPressed(ebiten.KeyUp) {
+		//log.Printf("up\n")
+		pTank.Move(DirectionUp)
+
+	} else
+	// down
+	if game.IsKeyPressed(ebiten.KeyDown) {
+		//log.Printf("down\n")
+		pTank.Move(DirectionDown)
+
+	} else
+	// left
+	if game.IsKeyPressed(ebiten.KeyLeft) {
+		//log.Printf("left\n")
+		pTank.Move(DirectionLeft)
+
+	} else
+	// right
+	if game.IsKeyPressed(ebiten.KeyRight) {
+		//log.Printf("right\n")
+		pTank.Move(DirectionRight)
+
+	}
+	
+	// space
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		log.Printf("space\n")
+	}
+
+	return nil
+}
+
+func (game *Game) IsKeyPressed(key ebiten.Key) bool {
+	if ebiten.IsKeyPressed(key) {
+		game.curKeyPressedUnixNano = time.Now().UnixNano()
+		result := game.curKeyPressedUnixNano-game.prevKeyPressedUnixNano >= 10
+		game.prevKeyPressedUnixNano = game.curKeyPressedUnixNano
+		return result
+	}
+	return false
+}
+
+func (game *Game) Draw(screen *ebiten.Image) {
+	select {
+	// 非阻塞获取 chanel 中的 map
+	case graphicsMap := <-graphicsMapChan:
+		// 再将 map 添加到 channel
+		defer func() { graphicsMapChan <- graphicsMap }()
+		for _, graphics := range graphicsMap {
+			if graphics.Status() != StatusTerm {
+				graphics.Draw(screen)
+			}
+		}
+
+	default:
+	}
+}
+
+func (game *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
+	return screenWidth, screenHeight
 }
 
 func Run() {
 
-	// 初始化 termbox
-	err := termbox.Init()
-	if err != nil {
-		panic(err)
-	}
-
-	// 关闭 termbox
-	defer termbox.Close()
-
-	// 获取当前窗口宽度和高度
-	// -→ x
-	// ↓ y
-	//width, height := termbox.Size()
-	//fmt.Printf("width \t= %v\n", width)
-	//fmt.Printf("height \t= %v\n", height)
-
-	//
-	graphics()
-
-	// 绘制
-	go func() {
-		for {
-			draw()
-			time.Sleep(30 * time.Millisecond)
-		}
-	}()
-
-	// 清理
-	go func() {
-		for {
-			clean()
-			time.Sleep(100 * time.Millisecond)
-		}
-	}()
-
-	// termbox事件(如,键盘按键) channel
-	eventChan := make(chan termbox.Event)
-	go func() {
-		for {
-			// 向 channel 添加轮询事件
-			eventChan <- termbox.PollEvent()
-		}
-	}()
-
-loop:
-	for {
-		select {
-		case event := <-eventChan:
-			// 如果是Key类型事件
-			if event.Type == termbox.EventKey {
-				switch event.Key {
-				// Esc按键
-				case termbox.KeyEsc:
-					break loop
-
-				// 向上键箭头按键
-				case termbox.KeyArrowUp:
-					tank.Move(DirectionUp)
-
-				// 向下键箭头按键
-				case termbox.KeyArrowDown:
-					tank.Move(DirectionDown)
-
-				// 向左键箭头按键
-				case termbox.KeyArrowLeft:
-					tank.Move(DirectionLeft)
-
-				// 向右键箭头按键
-				case termbox.KeyArrowRight:
-					tank.Move(DirectionRight)
-
-				// 开火
-				case termbox.KeySpace:
-					tank.Fire()
-				}
-
-			}
-		default:
-			time.Sleep(2 * time.Millisecond)
-		}
+	ebiten.SetWindowSize(screenWidth, screenHeight)
+	ebiten.SetWindowTitle("Tank")
+	if err := ebiten.RunGame(&Game{}); err != nil {
+		log.Fatal(err)
 	}
 
 }

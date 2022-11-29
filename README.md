@@ -1,22 +1,14 @@
 # pkg/mod
 
-## termbox-go
+## ebiten
 
-[termbox GitHub](https://github.com/nsf/termbox-go)
+[GitHub](https://github.com/hajimehoshi/ebiten)
 
-[termbox overview](https://pkg.go.dev/github.com/nsf/termbox-go#pkg-overview)
-
-```shell
-$ go get -u github.com/nsf/termbox-go
-```
+[ebiten](https://ebitengine.org/)
 
 ## uuid
 
 [uuid GitHub](https://github.com/google/uuid)
-
-```shell
-$ go get github.com/google/uuid
-```
 
 # go run
 

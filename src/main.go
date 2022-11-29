@@ -1,5 +1,6 @@
+// main
 // @author xiangqian
-// @date 23:16 2022/11/26
+// @date 22:19 2022/11/29
 package main
 
 import (
@@ -9,5 +10,4 @@ import (
 func main() {
 
 	tank.Run()
-
 }

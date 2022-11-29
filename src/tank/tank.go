@@ -6,13 +6,14 @@
 package tank
 
 import (
-	"github.com/nsf/termbox-go"
+	"github.com/hajimehoshi/ebiten"
 )
 
 type Tank struct {
 	*AbsGraphics
-
-	body []*Location // 坦克体
+	pLocation *Location
+	pOptions  *ebiten.DrawImageOptions
+	pImg      *ebiten.Image
 }
 
 func CreateTank(location Location, direction Direction, speed Speed) *Tank {
@@ -23,146 +24,74 @@ func CreateTank(location Location, direction Direction, speed Speed) *Tank {
 			speed:     speed,
 			status:    StatusNew,
 		},
-		body: CreateTankBody(location, direction),
+		pLocation: &Location{location.x, location.y},
+		pOptions:  nil,
+		pImg:      nil,
 	}
 	return pTank
 }
 
-// location 中心位置
-func CreateTankBody(location Location, direction Direction) []*Location {
-	x := location.x
-	y := location.y
-	switch direction {
-	case DirectionUp:
-		y -= 1
-		return []*Location{
-			// 头部
-			{x, y},
-			// 左侧
-			{x - 2, y + 1},
-			{x - 2, y + 2},
-			// 右侧
-			{x + 2, y + 1},
-			{x + 2, y + 2},
-		}
-
-	case DirectionDown:
-		y += 1
-		return []*Location{
-			// 头部
-			{x, y},
-			// 左侧
-			{x - 2, y - 2},
-			{x - 2, y - 1},
-			// 右侧
-			{x + 2, y - 2},
-			{x + 2, y - 1},
-		}
-
-	case DirectionLeft:
-		x -= 2
-		return []*Location{
-			// 头部
-			{x, y},
-			// 上侧
-			{x + 2, y - 1},
-			{x + 4, y - 1},
-			// 下侧
-			{x + 2, y + 1},
-			{x + 4, y + 1},
-		}
-
-	case DirectionRight:
-		x += 2
-		return []*Location{
-			// 头部
-			{x, y},
-			// 上侧
-			{x - 2, y - 1},
-			{x - 4, y - 1},
-			// 下侧
-			{x - 2, y + 1},
-			{x - 4, y + 1},
-		}
-	}
-
-	return nil
-}
-
-// 中心位置 location
-func (tank *Tank) Location() Location {
-	location := *tank.body[0]
-	x, y := location.x, location.y
-	switch tank.direction {
-	case DirectionUp:
-		y += 1
-
-	case DirectionDown:
-		y -= 1
-
-	case DirectionLeft:
-		x += 2
-
-	case DirectionRight:
-		x -= 2
-	}
-
-	return Location{x, y}
-}
-
 func (tank *Tank) Move(direction Direction) {
-
-	if tank.direction != direction {
-		tank.body = CreateTankBody(tank.Location(), direction)
-	}
+	// -→ x
+	// ↓ y
+	location := tank.pLocation
 	tank.direction = direction
-
-	location := *tank.body[0]
-	width, height := termbox.Size()
-	if location.x <= infoBar.width+2 || location.x+2 >= width ||
-		location.y <= 0 || location.y+1 >= height {
-		return
-	}
-
-	body := tank.body
+	var pImg *ebiten.Image
+	var xx float64 = 1 + float64(tank.speed)
 	switch direction {
 	case DirectionUp:
-		for _, location := range body {
-			location.y -= 1
-		}
+		location.y -= xx
+		pImg = pTankUpImg
 
 	case DirectionDown:
-		for _, location := range body {
-			location.y += 1
-		}
+		location.y += xx
+		pImg = pTankDownImg
 
 	case DirectionLeft:
-		for _, location := range body {
-			location.x -= 1
-		}
+		location.x -= xx
+		pImg = pTankLeftImg
 
 	case DirectionRight:
-		for _, location := range body {
-			location.x += 1
-		}
+		location.x += xx
+		pImg = pTankRightImg
 	}
-
+	tank.pImg = pImg
 }
 
 // 开火
 func (tank *Tank) Fire() {
-	addGraphics(CreateBullet(tank, SpeedNormal))
 }
 
-func (tank *Tank) Draw() error {
-	if err := tank.AbsGraphics.Draw(); err != nil {
+func (tank *Tank) Draw(screen *ebiten.Image) error {
+	if err := tank.AbsGraphics.Draw(screen); err != nil {
 		return err
 	}
-
-	body := tank.body
-	for _, location := range body {
-		termbox.SetCell(location.x, location.y, '⬛', termbox.ColorRed, termbox.ColorRed)
+	options := tank.pOptions
+	if options == nil {
+		options = &ebiten.DrawImageOptions{}
+		tank.pOptions = options
 	}
+	options.GeoM.Reset()
+	location := tank.pLocation
+	options.GeoM.Translate(location.x, location.y)
 
+	pImg := tank.pImg
+	if pImg == nil {
+		switch tank.direction {
+		case DirectionUp:
+			pImg = pTankUpImg
+
+		case DirectionDown:
+			pImg = pTankDownImg
+
+		case DirectionLeft:
+			pImg = pTankLeftImg
+
+		case DirectionRight:
+			pImg = pTankRightImg
+		}
+		tank.pImg = pImg
+	}
+	screen.DrawImage(pImg, options)
 	return nil
 }
