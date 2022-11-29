@@ -29,9 +29,6 @@ func init() {
 	graphicsMap = make(map[string]Graphics, 8)
 	graphicsMapChan = make(chan map[string]Graphics, 1)
 	graphicsMapChan <- graphicsMap
-
-	pTank = CreateTank(Location{100, 100}, DirectionRight, SpeedNormal)
-	addGraphics(pTank)
 }
 
 func addGraphics(graphics Graphics) {
@@ -69,7 +66,7 @@ func (game *Game) Update(screen *ebiten.Image) error {
 		pTank.Move(DirectionRight)
 
 	}
-	
+
 	// space
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 		log.Printf("space\n")
@@ -109,6 +106,8 @@ func (game *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func Run() {
+	pTank = CreateTank(Location{300, 100}, DirectionRight, SpeedNormal)
+	addGraphics(pTank)
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Tank")

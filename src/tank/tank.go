@@ -11,87 +11,30 @@ import (
 
 type Tank struct {
 	*AbsGraphics
-	pLocation *Location
-	pOptions  *ebiten.DrawImageOptions
-	pImg      *ebiten.Image
 }
 
 func CreateTank(location Location, direction Direction, speed Speed) *Tank {
-	pTank := &Tank{
-		AbsGraphics: &AbsGraphics{
-			id:        "tank_" + Uuid(),
-			direction: direction,
-			speed:     speed,
-			status:    StatusNew,
-		},
-		pLocation: &Location{location.x, location.y},
-		pOptions:  nil,
-		pImg:      nil,
-	}
+	pTank := &Tank{AbsGraphics: CreateAbsGraphics(location, direction, speed)}
+	pTank.sub = pTank
 	return pTank
-}
-
-func (tank *Tank) Move(direction Direction) {
-	// -→ x
-	// ↓ y
-	location := tank.pLocation
-	tank.direction = direction
-	var pImg *ebiten.Image
-	var xx float64 = 1 + float64(tank.speed)
-	switch direction {
-	case DirectionUp:
-		location.y -= xx
-		pImg = pTankUpImg
-
-	case DirectionDown:
-		location.y += xx
-		pImg = pTankDownImg
-
-	case DirectionLeft:
-		location.x -= xx
-		pImg = pTankLeftImg
-
-	case DirectionRight:
-		location.x += xx
-		pImg = pTankRightImg
-	}
-	tank.pImg = pImg
 }
 
 // 开火
 func (tank *Tank) Fire() {
 }
 
-func (tank *Tank) Draw(screen *ebiten.Image) error {
-	if err := tank.AbsGraphics.Draw(screen); err != nil {
-		return err
-	}
-	options := tank.pOptions
-	if options == nil {
-		options = &ebiten.DrawImageOptions{}
-		tank.pOptions = options
-	}
-	options.GeoM.Reset()
-	location := tank.pLocation
-	options.GeoM.Translate(location.x, location.y)
+func (tank *Tank) UpImg() *ebiten.Image {
+	return pTankUpImg
+}
 
-	pImg := tank.pImg
-	if pImg == nil {
-		switch tank.direction {
-		case DirectionUp:
-			pImg = pTankUpImg
+func (tank *Tank) DownImg() *ebiten.Image {
+	return pTankDownImg
+}
 
-		case DirectionDown:
-			pImg = pTankDownImg
+func (tank *Tank) LeftImg() *ebiten.Image {
+	return pTankLeftImg
+}
 
-		case DirectionLeft:
-			pImg = pTankLeftImg
-
-		case DirectionRight:
-			pImg = pTankRightImg
-		}
-		tank.pImg = pImg
-	}
-	screen.DrawImage(pImg, options)
-	return nil
+func (tank *Tank) RightImg() *ebiten.Image {
+	return pTankRightImg
 }
