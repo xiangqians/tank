@@ -69,7 +69,8 @@ func (game *Game) Update(screen *ebiten.Image) error {
 
 	// space
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		log.Printf("space\n")
+		//log.Printf("space\n")
+		pTank.Fire()
 	}
 
 	return nil

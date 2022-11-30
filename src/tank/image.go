@@ -14,20 +14,35 @@ import (
 )
 
 var (
-	pTankUpImg    *ebiten.Image
-	pTankDownImg  *ebiten.Image
-	pTankLeftImg  *ebiten.Image
-	pTankRightImg *ebiten.Image
+	pDefaultImg     *ebiten.Image // default
+	pTankUpImg      *ebiten.Image // tank
+	pTankDownImg    *ebiten.Image
+	pTankLeftImg    *ebiten.Image
+	pTankRightImg   *ebiten.Image
+	pBulletUpImg    *ebiten.Image // bullet
+	pBulletDownImg  *ebiten.Image
+	pBulletLeftImg  *ebiten.Image
+	pBulletRightImg *ebiten.Image
 )
 
 func init() {
-	pTankUpImg = newImage("images/tankU.gif")
-	pTankDownImg = newImage("images/tankD.gif")
-	pTankLeftImg = newImage("images/tankL.gif")
-	pTankRightImg = newImage("images/tankR.gif")
+	// default
+	pDefaultImg = NewEbitenImage("images/default.png")
+
+	// tank
+	pTankUpImg = NewEbitenImage("images/tankU.gif")
+	pTankDownImg = NewEbitenImage("images/tankD.gif")
+	pTankLeftImg = NewEbitenImage("images/tankL.gif")
+	pTankRightImg = NewEbitenImage("images/tankR.gif")
+
+	// bullet
+	pBulletUpImg = NewEbitenImage("images/bulletU.gif")
+	pBulletDownImg = NewEbitenImage("images/bulletD.gif")
+	pBulletLeftImg = NewEbitenImage("images/bulletL.gif")
+	pBulletRightImg = NewEbitenImage("images/bulletR.gif")
 }
 
-func newImage(name string) *ebiten.Image {
+func NewEbitenImage(name string) *ebiten.Image {
 	pFile, err := os.Open(name)
 	if err != nil {
 		log.Fatal(err)
@@ -35,12 +50,12 @@ func newImage(name string) *ebiten.Image {
 
 	// image: unknown format
 	// 需要导入 import _ "image/gif"，image包不知道怎么Decode图片，需要导入 "image/gif" 去解码 gif 图片。
-	pImg, _, err := image.Decode(pFile)
+	img, _, err := image.Decode(pFile)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pEbitenImg, err := ebiten.NewImageFromImage(pImg, ebiten.FilterDefault)
+	pEbitenImg, err := ebiten.NewImageFromImage(img, ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}

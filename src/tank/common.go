@@ -68,28 +68,31 @@ type Graphics interface {
 
 // 图形
 type AbsGraphics struct {
-	id        string                   // id
-	pLocation *Location                // 位置
-	pOptions  *ebiten.DrawImageOptions // 绘制图片操作类
-	pImg      *ebiten.Image            // 图片
-	direction Direction                // 方向
-	speed     Speed                    // 速度
-	status    Status                   // 状态
-	hp        uint8                    // 生命值
-	sub       interface{}              // 子类
+	id        string        // id
+	pLocation *Location     // 位置
+	pImg      *ebiten.Image // 图片
+	direction Direction     // 方向
+	speed     Speed         // 速度
+	status    Status        // 状态
+	hp        uint8         // 生命值
+	sub       interface{}   // 子类
 }
 
 func CreateAbsGraphics(location Location, direction Direction, speed Speed) *AbsGraphics {
 	return &AbsGraphics{
 		id:        Uuid(),
 		pLocation: &Location{location.x, location.y},
-		pOptions:  nil,
-		pImg:      nil,
+		pImg:      pDefaultImg,
 		direction: direction,
 		speed:     speed,
 		status:    StatusNew,
 		hp:        100,
 	}
+}
+
+func (absGraphics *AbsGraphics) Init(sub interface{}) {
+	absGraphics.sub = sub
+	absGraphics.pImg = absGraphics.DirectionImg(absGraphics.direction)
 }
 
 func (absGraphics *AbsGraphics) Id() string {
@@ -109,21 +112,10 @@ func (absGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
 		return errors.New(fmt.Sprintf("the %v has been terminated", absGraphics.Id()))
 	}
 
-	options := absGraphics.pOptions
-	if options == nil {
-		options = &ebiten.DrawImageOptions{}
-		absGraphics.pOptions = options
-	}
-
+	op := &ebiten.DrawImageOptions{}
 	location := absGraphics.pLocation
-	options.GeoM.Reset()
-	options.GeoM.Translate(location.x, location.y)
-	pImg := absGraphics.pImg
-	if pImg == nil {
-		pImg = absGraphics.DirectionImg(absGraphics.direction)
-		absGraphics.pImg = pImg
-	}
-	return screen.DrawImage(pImg, options)
+	op.GeoM.Translate(location.x, location.y)
+	return screen.DrawImage(absGraphics.pImg, op)
 }
 
 func (absGraphics *AbsGraphics) Move(direction Direction) {
@@ -136,33 +128,46 @@ func (absGraphics *AbsGraphics) Move(direction Direction) {
 	switch direction {
 	case DirectionUp:
 		newy := location.y - xx
-		if !absGraphics.IsOutOfBounds(location.x, newy) {
+		if !absGraphics.refIsOutOfBounds(location.x, newy) {
 			location.y = newy
-			pImg = absGraphics.UpImg()
+			pImg = absGraphics.refUpImg()
 		}
 
 	case DirectionDown:
 		newy := location.y + xx
-		if !absGraphics.IsOutOfBounds(location.x, newy) {
+		if !absGraphics.refIsOutOfBounds(location.x, newy) {
 			location.y = newy
-			pImg = absGraphics.DownImg()
+			pImg = absGraphics.refDownImg()
 		}
 
 	case DirectionLeft:
 		newx := location.x - xx
-		if !absGraphics.IsOutOfBounds(newx, location.y) {
+		if !absGraphics.refIsOutOfBounds(newx, location.y) {
 			location.x = newx
-			pImg = absGraphics.LeftImg()
+			pImg = absGraphics.refLeftImg()
 		}
 
 	case DirectionRight:
 		newx := location.x + xx
-		if !absGraphics.IsOutOfBounds(newx, location.y) {
+		if !absGraphics.refIsOutOfBounds(newx, location.y) {
 			location.x = newx
-			pImg = absGraphics.RightImg()
+			pImg = absGraphics.refRightImg()
 		}
 	}
-	absGraphics.pImg = pImg
+
+	if pImg != nil {
+		absGraphics.pImg = pImg
+	}
+}
+
+func (absGraphics *AbsGraphics) refIsOutOfBounds(x, y float64) bool {
+	r := absGraphics.refMethod("IsOutOfBounds", []reflect.Value{reflect.ValueOf(x), reflect.ValueOf(y)})
+	if r != nil {
+		return r.(bool)
+	}
+
+	//panic(nil)
+	return absGraphics.IsOutOfBounds(x, y)
 }
 
 // 是否越界
@@ -179,44 +184,72 @@ func (absGraphics *AbsGraphics) DirectionImg(direction Direction) *ebiten.Image 
 	var pImg *ebiten.Image = nil
 	switch direction {
 	case DirectionUp:
-		pImg = absGraphics.UpImg()
+		pImg = absGraphics.refUpImg()
 
 	case DirectionDown:
-		pImg = absGraphics.DownImg()
+		pImg = absGraphics.refDownImg()
 
 	case DirectionLeft:
-		pImg = absGraphics.LeftImg()
+		pImg = absGraphics.refLeftImg()
 
 	case DirectionRight:
-		pImg = absGraphics.RightImg()
+		pImg = absGraphics.refRightImg()
 	}
 	return pImg
 }
 
+func (absGraphics *AbsGraphics) refUpImg() *ebiten.Image {
+	return absGraphics.refNameImg("UpImg")
+}
+
+func (absGraphics *AbsGraphics) refDownImg() *ebiten.Image {
+	return absGraphics.refNameImg("DownImg")
+}
+
+func (absGraphics *AbsGraphics) refLeftImg() *ebiten.Image {
+	return absGraphics.refNameImg("LeftImg")
+}
+
+func (absGraphics *AbsGraphics) refRightImg() *ebiten.Image {
+	return absGraphics.refNameImg("RightImg")
+}
+
 func (absGraphics *AbsGraphics) UpImg() *ebiten.Image {
-	return absGraphics.NameImg("UpImg")
+	panic(nil)
 }
 
 func (absGraphics *AbsGraphics) DownImg() *ebiten.Image {
-	return absGraphics.NameImg("DownImg")
+	panic(nil)
 }
 
 func (absGraphics *AbsGraphics) LeftImg() *ebiten.Image {
-	return absGraphics.NameImg("LeftImg")
+	panic(nil)
 }
 
 func (absGraphics *AbsGraphics) RightImg() *ebiten.Image {
-	return absGraphics.NameImg("RightImg")
+	panic(nil)
 }
 
-func (absGraphics *AbsGraphics) NameImg(name string) *ebiten.Image {
+func (absGraphics *AbsGraphics) refNameImg(name string) *ebiten.Image {
+	r := absGraphics.refMethod(name, nil)
+	if r != nil {
+		return r.(*ebiten.Image)
+	}
+
+	panic(nil)
+}
+
+// 反射执行方法
+// name: 方法名
+// in: 入参，如果没有参数可以传 nil 或者空切片 make([]reflect.Value, 0)
+func (absGraphics *AbsGraphics) refMethod(name string, in []reflect.Value) interface{} {
 	ref := reflect.ValueOf(absGraphics.sub)
 	method := ref.MethodByName(name)
 	if method.IsValid() {
-		r := method.Call(make([]reflect.Value, 0))
-		return r[0].Interface().(*ebiten.Image)
+		r := method.Call(in)
+		return r[0].Interface()
 	}
-	panic(nil)
+	return nil
 }
 
 func Uuid() string {
