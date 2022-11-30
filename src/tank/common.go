@@ -130,34 +130,32 @@ func (absGraphics *AbsGraphics) Move(direction Direction) {
 		newy := location.y - xx
 		if !absGraphics.refIsOutOfBounds(location.x, newy) {
 			location.y = newy
-			pImg = absGraphics.refUpImg()
 		}
+		pImg = absGraphics.refUpImg()
 
 	case DirectionDown:
 		newy := location.y + xx
 		if !absGraphics.refIsOutOfBounds(location.x, newy) {
 			location.y = newy
-			pImg = absGraphics.refDownImg()
 		}
+		pImg = absGraphics.refDownImg()
 
 	case DirectionLeft:
 		newx := location.x - xx
 		if !absGraphics.refIsOutOfBounds(newx, location.y) {
 			location.x = newx
-			pImg = absGraphics.refLeftImg()
 		}
+		pImg = absGraphics.refLeftImg()
 
 	case DirectionRight:
 		newx := location.x + xx
 		if !absGraphics.refIsOutOfBounds(newx, location.y) {
 			location.x = newx
-			pImg = absGraphics.refRightImg()
 		}
+		pImg = absGraphics.refRightImg()
 	}
 
-	if pImg != nil {
-		absGraphics.pImg = pImg
-	}
+	absGraphics.pImg = pImg
 }
 
 func (absGraphics *AbsGraphics) refIsOutOfBounds(x, y float64) bool {
