@@ -6,10 +6,27 @@
 package tank
 
 import (
-	"fmt"
 	"log"
 	"net"
 )
+
+// Datagram Packet Type
+type (
+	Ty int8
+)
+
+const (
+	TyReg    Ty = iota // 注册
+	TyDiscov           // 发现
+	TyHb               // 心跳
+	TyData             // 数据
+)
+
+// Datagram Packet
+type DgPkt struct {
+	Ty   Ty     `json:"ty"`   // 类型
+	Data []byte `json:"data"` // 数据
+}
 
 type Endpoint struct {
 	conn      *net.UDPConn   // 当前端点连接
@@ -30,8 +47,10 @@ func (endpoint *Endpoint) Listen() {
 
 	endpoint.conn = conn
 	port := conn.LocalAddr().(*net.UDPAddr).Port
-	endpoint.localAddr = &net.UDPAddr{IP: LocalIp(), Port: port}
-	log.Printf("localAddr: %v\n", endpoint.localAddr.String())
+	localAddr := &net.UDPAddr{IP: LocalIp(), Port: port}
+	endpoint.localAddr = localAddr
+	endpoint.addrs = append(endpoint.addrs, localAddr)
+	log.Printf("localAddr: %v\n", localAddr.String())
 
 	count := 0
 	var bf [2048]byte
@@ -43,12 +62,26 @@ func (endpoint *Endpoint) Listen() {
 				panic(err)
 			}
 
-			fmt.Printf("read err, %v\n", err)
+			log.Printf("read err, %v\n", err)
 			count++
 			continue
 		}
 
-		fmt.Printf("addr: %v, data: %v\n", addr, string(bf[:n]))
+		pDgPkt := &DgPkt{}
+		err = Deserialize(string(bf[:n]), pDgPkt)
+		if err != nil {
+			continue
+		}
+
+		for i, length := 0, len(endpoint.addrs); i < length; i++ {
+
+		}
+
+		if pDgPkt.Ty == TyReg {
+
+		}
+
+		log.Printf("addr: %v, data: %v\n", addr, string(bf[:n]))
 	}
 }
 
@@ -62,7 +95,7 @@ func (endpoint *Endpoint) Write(data []byte) {
 		// 写入数据
 		_, err := endpoint.conn.WriteToUDP(data, addr)
 		if err != nil {
-			fmt.Printf("write err, %v\n", err)
+			log.Printf("write err, %v\n", err)
 		}
 	}
 }
