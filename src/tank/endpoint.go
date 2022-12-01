@@ -53,10 +53,10 @@ func (endpoint *Endpoint) Listen() {
 	log.Printf("localAddr: %v\n", localAddr.String())
 
 	count := 0
-	var bf [2048]byte
+	var buf [2048]byte
 	for {
 		// 读取数据
-		n, addr, err := conn.ReadFromUDP(bf[:])
+		n, addr, err := conn.ReadFromUDP(buf[:])
 		if err != nil {
 			if count > 8 {
 				panic(err)
@@ -68,7 +68,7 @@ func (endpoint *Endpoint) Listen() {
 		}
 
 		pDgPkt := &DgPkt{}
-		err = Deserialize(string(bf[:n]), pDgPkt)
+		err = Deserialize(buf[:n], pDgPkt)
 		if err != nil {
 			continue
 		}
@@ -81,7 +81,7 @@ func (endpoint *Endpoint) Listen() {
 
 		}
 
-		log.Printf("addr: %v, data: %v\n", addr, string(bf[:n]))
+		log.Printf("addr: %v, data: %v\n", addr, string(buf[:n]))
 	}
 }
 

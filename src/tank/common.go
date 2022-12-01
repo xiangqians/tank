@@ -12,17 +12,17 @@ func Uuid() string {
 	return uuid.New().String()
 }
 
-// 序列化
-func Serialize(i interface{}) (string, error) {
-	var jsonByte, err = json.Marshal(i)
+// JSON序列化
+func Serialize(v interface{}) ([]byte, error) {
+	var buf, err = json.Marshal(v)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return string(jsonByte), nil
+	return buf, nil
 }
 
-// 反序列化
-func Deserialize(jsonStr string, v any) error {
-	return json.Unmarshal([]byte(jsonStr), v)
+// JSON反序列化
+func Deserialize(data []byte, v any) error {
+	return json.Unmarshal(data, v)
 }
