@@ -16,6 +16,9 @@ const (
 	screenHeight = 720
 )
 
+// 端点
+var endpoint *Endpoint
+
 // 图形Map
 var graphicsMap map[string]Graphics
 
@@ -26,6 +29,8 @@ var graphicsMapChan chan map[string]Graphics
 var pTank *Tank
 
 func init() {
+	endpoint = &Endpoint{}
+
 	graphicsMap = make(map[string]Graphics, 8)
 	graphicsMapChan = make(chan map[string]Graphics, 1)
 	graphicsMapChan <- graphicsMap
@@ -107,6 +112,9 @@ func (game *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func Run() {
+	// 端点监听
+	go endpoint.Listen()
+
 	pTank = CreateTank(Location{300, 100}, DirectionRight, SpeedNormal)
 	addGraphics(pTank)
 
@@ -115,5 +123,4 @@ func Run() {
 	if err := ebiten.RunGame(&Game{}); err != nil {
 		log.Fatal(err)
 	}
-
 }
