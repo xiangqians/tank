@@ -76,10 +76,17 @@ func init() {
 func logger() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	pLogFile, err := os.OpenFile("./tank.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	fileInfo, err := os.Stat("./logs")
+	if err != nil || !fileInfo.IsDir() {
+		err = os.Mkdir("./logs", 0666)
+		if err != nil {
+			panic(err)
+		}
+	}
+
+	pLogFile, err := os.OpenFile("./logs/tank.log", os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		fmt.Printf("open log file err, %v", err)
-		return
+		panic(err)
 	}
 
 	log.SetOutput(pLogFile)
