@@ -8,33 +8,34 @@ package tank
 import (
 	"log"
 	"net"
+	"strings"
 )
 
 // Datagram Packet Type
 type (
-	Ty int8
+	DgPktTy int8
 )
 
 const (
-	TyReg    Ty = iota // 注册
-	TyDiscov           // 发现
-	TyHb               // 心跳
-	TyData             // 数据
+	DgPktTyReg    DgPktTy = iota + 1 // 注册
+	DgPktTyDiscov                    // 发现
+	DgPktTyHb                        // 心跳
+	DgPktTyData                      // 数据
 )
 
 // Datagram Packet
 type DgPkt struct {
-	Ty   Ty     `json:"ty"`   // 类型
-	Data []byte `json:"data"` // 数据
+	DgPktTy DgPktTy `json:"dgPktTy"` // 类型
+	Data    []byte  `json:"data"`    // 数据
 }
 
 type Endpoint struct {
-	conn      *net.UDPConn   // 当前端点连接
-	localAddr *net.UDPAddr   // 本地地址
-	addrs     []*net.UDPAddr // 本地&远程端点udp地址集切片
+	Conn      *net.UDPConn   // 当前端点连接
+	LocalAddr *net.UDPAddr   // 本地地址
+	Addrs     []*net.UDPAddr // 本地&远程端点udp地址集切片
 }
 
-func (endpoint *Endpoint) Listen() {
+func (pEndpoint *Endpoint) Listen() {
 
 	// UDP Listen
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(0, 0, 0, 0), Port: 0})
@@ -45,12 +46,13 @@ func (endpoint *Endpoint) Listen() {
 	// 关闭连接
 	defer conn.Close()
 
-	endpoint.conn = conn
+	pEndpoint.Conn = conn
 	port := conn.LocalAddr().(*net.UDPAddr).Port
 	localAddr := &net.UDPAddr{IP: LocalIp(), Port: port}
-	endpoint.localAddr = localAddr
-	endpoint.addrs = append(endpoint.addrs, localAddr)
+	pEndpoint.LocalAddr = localAddr
+	pEndpoint.Addrs = append(pEndpoint.Addrs, localAddr)
 	log.Printf("localAddr: %v\n", localAddr.String())
+	pGameReg.LocalAddr = localAddr.String()
 
 	count := 0
 	var buf [2048]byte
@@ -69,35 +71,134 @@ func (endpoint *Endpoint) Listen() {
 
 		pDgPkt := &DgPkt{}
 		err = Deserialize(buf[:n], pDgPkt)
-		if err != nil {
+		if err != nil ||
+			!(pDgPkt.DgPktTy == DgPktTyReg || pDgPkt.DgPktTy == DgPktTyDiscov || pDgPkt.DgPktTy == DgPktTyHb || pDgPkt.DgPktTy == DgPktTyData) {
 			continue
 		}
 
-		for i, length := 0, len(endpoint.addrs); i < length; i++ {
+		switch pDgPkt.DgPktTy {
+		case DgPktTyReg:
+			pEndpoint.Addrs = append(pEndpoint.Addrs, addr)
+			pDgPkt := &DgPkt{}
+			pDgPkt.DgPktTy = DgPktTyDiscov
+			addrs := pEndpoint.Addrs
+			var addrsStr string
+			for _, a := range addrs {
+				addrsStr += a.String() + ","
+			}
+			pDgPkt.Data = []byte(addrsStr)
+			log.Printf("addrsStr: %v\n", addrsStr)
+			pEndpoint.SendDgPktToAddrs(pDgPkt)
 
+		case DgPktTyDiscov:
+			addrsStr := string(pDgPkt.Data)
+			log.Printf("Discov: %v\n", addrsStr)
+			addrStrArr := strings.Split(addrsStr, ",")
+			for i, as := range addrStrArr {
+				as = strings.TrimSpace(as)
+				if as == "" {
+					continue
+				}
+				log.Printf("%v, %v\n", i, as)
+
+				flag := true
+				for _, _as := range pEndpoint.Addrs {
+					if _as.String() == as {
+						flag = false
+						break
+					}
+				}
+				if flag {
+					asAddr, _ := net.ResolveUDPAddr("udp", as)
+					pEndpoint.Addrs = append(pEndpoint.Addrs, asAddr)
+					pDgPkt := &DgPkt{}
+					pDgPkt.DgPktTy = DgPktTyHb
+					log.Printf("hb: %v\n", asAddr.String())
+					pEndpoint.SendDgPkt(pDgPkt, asAddr)
+				}
+			}
+
+		case DgPktTyHb:
+		case DgPktTyData:
+			pAbsGraphics := &AbsGraphics{}
+			err := Deserialize(pDgPkt.Data, pAbsGraphics)
+			if err == nil {
+				log.Printf("addr: %v, graphics: %v\n", addr, pAbsGraphics)
+				switch pAbsGraphics.GraphicsTy {
+				case GraphicsTyTank:
+					pTank := &Tank{AbsGraphics: pAbsGraphics}
+					pTank.Init(pTank)
+					addGraphics(pTank)
+				case GraphicsTyBullet:
+				}
+			}
 		}
 
-		if pDgPkt.Ty == TyReg {
-
+		for i, length := 0, len(pEndpoint.Addrs); i < length; i++ {
 		}
-
-		log.Printf("addr: %v, data: %v\n", addr, string(buf[:n]))
 	}
 }
 
-func (endpoint *Endpoint) Write(data []byte) {
-	for i, length := 0, len(endpoint.addrs); i < length; i++ {
-		addr := endpoint.addrs[i]
-		if addr == endpoint.localAddr {
+func (pEndpoint *Endpoint) SendGraphics(graphics Graphics) {
+	buf, err := Serialize(graphics)
+	if err != nil {
+		return
+	}
+
+	pDgPkt := &DgPkt{}
+	pDgPkt.DgPktTy = DgPktTyData
+	pDgPkt.Data = buf
+	pEndpoint.SendDgPktToAddrs(pDgPkt)
+}
+
+func (pEndpoint *Endpoint) SendDgPktToAddrs(pDgPkt *DgPkt) {
+	buf, err := Serialize(pDgPkt)
+	if err != nil {
+		return
+	}
+
+	for i, length := 0, len(pEndpoint.Addrs); i < length; i++ {
+		addr := pEndpoint.Addrs[i]
+		if UDPAddrEqual(addr, pEndpoint.LocalAddr) {
 			continue
 		}
 
-		// 写入数据
-		_, err := endpoint.conn.WriteToUDP(data, addr)
+		_, err := pEndpoint.Write(buf, addr)
 		if err != nil {
 			log.Printf("write err, %v\n", err)
 		}
 	}
+}
+
+func (pEndpoint *Endpoint) SendDgPkt(pDgPkt *DgPkt, addr *net.UDPAddr) {
+	buf, err := Serialize(pDgPkt)
+	if err == nil {
+		pEndpoint.Write(buf, addr)
+	}
+}
+
+// 写入数据
+func (pEndpoint *Endpoint) Write(data []byte, addr *net.UDPAddr) (int, error) {
+	return pEndpoint.Conn.WriteToUDP(data, addr)
+}
+
+func UDPAddrEqual(v1, v2 *net.UDPAddr) bool {
+	if v1.Port != v2.Port {
+		return false
+	}
+
+	ip1, ip2 := v1.IP, v1.IP
+	if len(ip1) != len(ip2) {
+		return false
+	}
+
+	for i, length := 0, len(ip1); i < length; i++ {
+		if ip1[i] != ip2[i] {
+			return false
+		}
+	}
+
+	return true
 }
 
 func LocalIp() net.IP {

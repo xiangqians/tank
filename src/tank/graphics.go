@@ -8,20 +8,20 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hajimehoshi/ebiten"
-	"log"
 	"reflect"
 )
 
 // type
 type (
-	Direction int8  // 方向
-	Speed     int16 // 速度
-	Status    int8  // 状态
+	Direction  int8  // 方向
+	Speed      int16 // 速度
+	Status     int8  // 状态
+	GraphicsTy int8  // 图像类型
 )
 
 // 方向
 const (
-	DirectionUp Direction = iota
+	DirectionUp Direction = iota + 1
 	DirectionDown
 	DirectionLeft
 	DirectionRight
@@ -36,31 +36,32 @@ const (
 
 // 状态
 const (
-	StatusNew  Status = iota // 初始化
-	StatusRun                // 运行（执行）
-	StatusTerm               // 终止
+	StatusNew  Status = iota + 1 // 初始化
+	StatusRun                    // 运行（执行）
+	StatusTerm                   // 终止
 )
 
-func init() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-}
+const (
+	GraphicsTyTank GraphicsTy = iota + 1
+	GraphicsTyBullet
+)
 
 // 位置信息
 type Location struct {
-	x float64
-	y float64
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }
 
 // 图形
 type Graphics interface {
 	// id
-	Id() string
+	GetId() string
 
 	// 状态
-	Status() Status
+	GetStatus() Status
 
 	// 生命值
-	HP() uint8
+	GetHp() uint8
 
 	// 绘制
 	Draw(screen *ebiten.Image) error
@@ -68,109 +69,112 @@ type Graphics interface {
 
 // 图形
 type AbsGraphics struct {
-	id        string        // id
-	pLocation *Location     // 位置
-	pImg      *ebiten.Image // 图片
-	direction Direction     // 方向
-	speed     Speed         // 速度
-	status    Status        // 状态
-	hp        uint8         // 生命值
-	sub       interface{}   // 子类
+	Id         string        `json:"id"`         // id
+	GraphicsTy GraphicsTy    `json:"graphicsTy"` // 图像类型
+	Location   Location      `json:"location"`   // 位置
+	Direction  Direction     `json:"direction"`  // 方向
+	Speed      Speed         `json:"speed"`      // 速度
+	Status     Status        `json:"status"`     // 状态
+	Hp         uint8         `json:"hp"`         // 生命值
+	pImg       *ebiten.Image // 图片
+	sub        interface{}   // 子类
 }
 
-func CreateAbsGraphics(location Location, direction Direction, speed Speed) *AbsGraphics {
+func CreateAbsGraphics(graphicsTy GraphicsTy, location Location, direction Direction, speed Speed) *AbsGraphics {
 	return &AbsGraphics{
-		id:        Uuid(),
-		pLocation: &Location{location.x, location.y},
-		pImg:      pDefaultImg,
-		direction: direction,
-		speed:     speed,
-		status:    StatusNew,
-		hp:        100,
+		Id:         Uuid(),
+		GraphicsTy: graphicsTy,
+		Location:   location,
+		Direction:  direction,
+		Speed:      speed,
+		Status:     StatusNew,
+		Hp:         100,
+		pImg:       nil,
+		sub:        nil,
 	}
 }
 
-func (absGraphics *AbsGraphics) Init(sub interface{}) {
-	absGraphics.sub = sub
-	absGraphics.pImg = absGraphics.DirectionImg(absGraphics.direction)
+func (pAbsGraphics *AbsGraphics) Init(sub interface{}) {
+	pAbsGraphics.sub = sub
+	pAbsGraphics.pImg = pAbsGraphics.DirectionImg(pAbsGraphics.Direction)
 }
 
-func (absGraphics *AbsGraphics) Id() string {
-	return absGraphics.id
+func (pAbsGraphics *AbsGraphics) GetId() string {
+	return pAbsGraphics.Id
 }
 
-func (absGraphics *AbsGraphics) Status() Status {
-	return absGraphics.status
+func (pAbsGraphics *AbsGraphics) GetStatus() Status {
+	return pAbsGraphics.Status
 }
 
-func (absGraphics *AbsGraphics) HP() uint8 {
-	return absGraphics.hp
+func (pAbsGraphics *AbsGraphics) GetHp() uint8 {
+	return pAbsGraphics.Hp
 }
 
-func (absGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
-	if absGraphics.status == StatusTerm {
-		return errors.New(fmt.Sprintf("the %v has been terminated", absGraphics.Id()))
+func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
+	if pAbsGraphics.Status == StatusTerm {
+		return errors.New(fmt.Sprintf("the %v has been terminated", pAbsGraphics.Id))
 	}
 
 	op := &ebiten.DrawImageOptions{}
-	location := absGraphics.pLocation
-	op.GeoM.Translate(location.x, location.y)
-	return screen.DrawImage(absGraphics.pImg, op)
+	location := pAbsGraphics.Location
+	op.GeoM.Translate(location.X, location.Y)
+	return screen.DrawImage(pAbsGraphics.pImg, op)
 }
 
-func (absGraphics *AbsGraphics) Move(direction Direction) {
+func (pAbsGraphics *AbsGraphics) Move(direction Direction) {
 	// -→ x
 	// ↓ y
-	location := absGraphics.pLocation
-	absGraphics.direction = direction
+	pLocation := &pAbsGraphics.Location
+	pAbsGraphics.Direction = direction
 	var pImg *ebiten.Image
-	var xx float64 = 1 + float64(absGraphics.speed)
+	var xx float64 = 1 + float64(pAbsGraphics.Speed)
 	switch direction {
 	case DirectionUp:
-		newy := location.y - xx
-		if !absGraphics.refIsOutOfBounds(location.x, newy) {
-			location.y = newy
+		newy := pLocation.Y - xx
+		if !pAbsGraphics.refIsOutOfBounds(pLocation.X, newy) {
+			pLocation.Y = newy
 		}
-		pImg = absGraphics.refUpImg()
+		pImg = pAbsGraphics.refUpImg()
 
 	case DirectionDown:
-		newy := location.y + xx
-		if !absGraphics.refIsOutOfBounds(location.x, newy) {
-			location.y = newy
+		newy := pLocation.Y + xx
+		if !pAbsGraphics.refIsOutOfBounds(pLocation.X, newy) {
+			pLocation.Y = newy
 		}
-		pImg = absGraphics.refDownImg()
+		pImg = pAbsGraphics.refDownImg()
 
 	case DirectionLeft:
-		newx := location.x - xx
-		if !absGraphics.refIsOutOfBounds(newx, location.y) {
-			location.x = newx
+		newx := pLocation.X - xx
+		if !pAbsGraphics.refIsOutOfBounds(newx, pLocation.Y) {
+			pLocation.X = newx
 		}
-		pImg = absGraphics.refLeftImg()
+		pImg = pAbsGraphics.refLeftImg()
 
 	case DirectionRight:
-		newx := location.x + xx
-		if !absGraphics.refIsOutOfBounds(newx, location.y) {
-			location.x = newx
+		newx := pLocation.X + xx
+		if !pAbsGraphics.refIsOutOfBounds(newx, pLocation.Y) {
+			pLocation.X = newx
 		}
-		pImg = absGraphics.refRightImg()
+		pImg = pAbsGraphics.refRightImg()
 	}
 
-	absGraphics.pImg = pImg
+	pAbsGraphics.pImg = pImg
 }
 
-func (absGraphics *AbsGraphics) refIsOutOfBounds(x, y float64) bool {
-	r := absGraphics.refMethod("IsOutOfBounds", []reflect.Value{reflect.ValueOf(x), reflect.ValueOf(y)})
+func (pAbsGraphics *AbsGraphics) refIsOutOfBounds(x, y float64) bool {
+	r := pAbsGraphics.refMethod("IsOutOfBounds", []reflect.Value{reflect.ValueOf(x), reflect.ValueOf(y)})
 	if r != nil {
 		return r.(bool)
 	}
 
 	//panic(nil)
-	return absGraphics.IsOutOfBounds(x, y)
+	return pAbsGraphics.IsOutOfBounds(x, y)
 }
 
 // 是否越界
-func (absGraphics *AbsGraphics) IsOutOfBounds(x, y float64) bool {
-	width, height := absGraphics.pImg.Size()
+func (pAbsGraphics *AbsGraphics) IsOutOfBounds(x, y float64) bool {
+	width, height := pAbsGraphics.pImg.Size()
 	if x <= 0 || x >= screenWidth-float64(height) || y <= 0 || y >= screenHeight-float64(width) {
 		return true
 	}
@@ -178,58 +182,58 @@ func (absGraphics *AbsGraphics) IsOutOfBounds(x, y float64) bool {
 	return false
 }
 
-func (absGraphics *AbsGraphics) DirectionImg(direction Direction) *ebiten.Image {
+func (pAbsGraphics *AbsGraphics) DirectionImg(direction Direction) *ebiten.Image {
 	var pImg *ebiten.Image = nil
 	switch direction {
 	case DirectionUp:
-		pImg = absGraphics.refUpImg()
+		pImg = pAbsGraphics.refUpImg()
 
 	case DirectionDown:
-		pImg = absGraphics.refDownImg()
+		pImg = pAbsGraphics.refDownImg()
 
 	case DirectionLeft:
-		pImg = absGraphics.refLeftImg()
+		pImg = pAbsGraphics.refLeftImg()
 
 	case DirectionRight:
-		pImg = absGraphics.refRightImg()
+		pImg = pAbsGraphics.refRightImg()
 	}
 	return pImg
 }
 
-func (absGraphics *AbsGraphics) refUpImg() *ebiten.Image {
-	return absGraphics.refNameImg("UpImg")
+func (pAbsGraphics *AbsGraphics) refUpImg() *ebiten.Image {
+	return pAbsGraphics.refNameImg("UpImg")
 }
 
-func (absGraphics *AbsGraphics) refDownImg() *ebiten.Image {
-	return absGraphics.refNameImg("DownImg")
+func (pAbsGraphics *AbsGraphics) refDownImg() *ebiten.Image {
+	return pAbsGraphics.refNameImg("DownImg")
 }
 
-func (absGraphics *AbsGraphics) refLeftImg() *ebiten.Image {
-	return absGraphics.refNameImg("LeftImg")
+func (pAbsGraphics *AbsGraphics) refLeftImg() *ebiten.Image {
+	return pAbsGraphics.refNameImg("LeftImg")
 }
 
-func (absGraphics *AbsGraphics) refRightImg() *ebiten.Image {
-	return absGraphics.refNameImg("RightImg")
+func (pAbsGraphics *AbsGraphics) refRightImg() *ebiten.Image {
+	return pAbsGraphics.refNameImg("RightImg")
 }
 
-func (absGraphics *AbsGraphics) UpImg() *ebiten.Image {
+func (pAbsGraphics *AbsGraphics) UpImg() *ebiten.Image {
 	panic(nil)
 }
 
-func (absGraphics *AbsGraphics) DownImg() *ebiten.Image {
+func (pAbsGraphics *AbsGraphics) DownImg() *ebiten.Image {
 	panic(nil)
 }
 
-func (absGraphics *AbsGraphics) LeftImg() *ebiten.Image {
+func (pAbsGraphics *AbsGraphics) LeftImg() *ebiten.Image {
 	panic(nil)
 }
 
-func (absGraphics *AbsGraphics) RightImg() *ebiten.Image {
+func (pAbsGraphics *AbsGraphics) RightImg() *ebiten.Image {
 	panic(nil)
 }
 
-func (absGraphics *AbsGraphics) refNameImg(name string) *ebiten.Image {
-	r := absGraphics.refMethod(name, nil)
+func (pAbsGraphics *AbsGraphics) refNameImg(name string) *ebiten.Image {
+	r := pAbsGraphics.refMethod(name, nil)
 	if r != nil {
 		return r.(*ebiten.Image)
 	}
@@ -240,8 +244,8 @@ func (absGraphics *AbsGraphics) refNameImg(name string) *ebiten.Image {
 // 反射执行方法
 // name: 方法名
 // in: 入参，如果没有参数可以传 nil 或者空切片 make([]reflect.Value, 0)
-func (absGraphics *AbsGraphics) refMethod(name string, in []reflect.Value) interface{} {
-	ref := reflect.ValueOf(absGraphics.sub)
+func (pAbsGraphics *AbsGraphics) refMethod(name string, in []reflect.Value) interface{} {
+	ref := reflect.ValueOf(pAbsGraphics.sub)
 	method := ref.MethodByName(name)
 	if method.IsValid() {
 		r := method.Call(in)

@@ -14,7 +14,7 @@ type Tank struct {
 }
 
 func CreateTank(location Location, direction Direction, speed Speed) *Tank {
-	pTank := &Tank{AbsGraphics: CreateAbsGraphics(location, direction, speed)}
+	pTank := &Tank{AbsGraphics: CreateAbsGraphics(GraphicsTyTank, location, direction, speed)}
 	pTank.Init(pTank)
 	return pTank
 }
@@ -22,6 +22,11 @@ func CreateTank(location Location, direction Direction, speed Speed) *Tank {
 // 开火
 func (pTank *Tank) Fire() {
 	addGraphics(CreateBullet(pTank, SpeedNormal))
+}
+
+func (pTank *Tank) Move(direction Direction) {
+	pTank.AbsGraphics.Move(direction)
+	pEndpoint.SendGraphics(pTank)
 }
 
 func (pTank *Tank) UpImg() *ebiten.Image {

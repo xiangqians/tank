@@ -7,6 +7,7 @@ package tank
 
 import (
 	"github.com/hajimehoshi/ebiten"
+	"log"
 	"sync"
 	"time"
 )
@@ -21,52 +22,52 @@ type Bullet struct {
 
 func CreateBullet(pTank *Tank, speed Speed) *Bullet {
 	// 让子弹坐标从坦克中心发出
-	pLocation := pTank.pLocation
+	pLocation := pTank.Location
 	width, height := pTank.pImg.Size()
 	//log.Printf("width = %v, height = %v\n", width, height)
 	var location Location
-	switch pTank.direction {
+	switch pTank.Direction {
 	case DirectionUp:
-		location = Location{pLocation.x + float64(width/2) - 4.51392, pLocation.y - 8}
+		location = Location{pLocation.X + float64(width/2) - 4.51392, pLocation.Y - 8}
 	case DirectionDown:
-		location = Location{pLocation.x + float64(width/2) - 5.8, pLocation.y + float64(height)}
+		location = Location{pLocation.X + float64(width/2) - 5.8, pLocation.Y + float64(height)}
 	case DirectionLeft:
-		location = Location{pLocation.x - 8, pLocation.y + float64(height/2) - 2.91392}
+		location = Location{pLocation.X - 8, pLocation.Y + float64(height/2) - 2.91392}
 	case DirectionRight:
-		location = Location{pLocation.x + float64(width), pLocation.y + float64(height/2) - 2.91392}
+		location = Location{pLocation.X + float64(width), pLocation.Y + float64(height/2) - 2.91392}
 	}
 	//log.Printf("location = %v\n", location)
 
 	pBullet := &Bullet{
-		AbsGraphics: CreateAbsGraphics(location, pTank.direction, speed),
-		tankId:      pTank.id,
+		AbsGraphics: CreateAbsGraphics(GraphicsTyBullet, location, pTank.Direction, speed),
+		tankId:      pTank.Id,
 	}
 	pBullet.Init(pBullet)
 	return pBullet
 }
 
-func (bullet *Bullet) IsOutOfBounds(x, y float64) bool {
-	r := bullet.AbsGraphics.IsOutOfBounds(x, y)
+func (pBullet *Bullet) IsOutOfBounds(x, y float64) bool {
+	r := pBullet.AbsGraphics.IsOutOfBounds(x, y)
 	if r {
-		bullet.status = StatusTerm
+		pBullet.Status = StatusTerm
 	}
 	return r
 }
 
-func (bullet *Bullet) Draw(screen *ebiten.Image) error {
-	if err := bullet.AbsGraphics.Draw(screen); err != nil {
+func (pBullet *Bullet) Draw(screen *ebiten.Image) error {
+	if err := pBullet.AbsGraphics.Draw(screen); err != nil {
 		return err
 	}
 
 	// 如果是当前用户所发射的子弹，那么由当前用户轮询设置子弹位置
-	if bullet.tankId == pTank.id && bullet.status == StatusNew {
+	if pBullet.tankId == pTank.Id && pBullet.Status == StatusNew {
 		func() {
 			// 加锁
 			bulletLock.Lock()
 
-			if bullet.status == StatusNew {
-				go bullet.Run()
-				bullet.status = StatusRun
+			if pBullet.Status == StatusNew {
+				go pBullet.Run()
+				pBullet.Status = StatusRun
 			}
 
 			// 释放锁
@@ -77,14 +78,18 @@ func (bullet *Bullet) Draw(screen *ebiten.Image) error {
 	return nil
 }
 
-func (bullet *Bullet) Run() {
+func (pBullet *Bullet) Run() {
 	for {
-		if bullet.status != StatusRun {
+		if pBullet.Status != StatusRun {
 			break
 		}
 
-		bullet.Move(bullet.direction)
-		switch bullet.speed {
+		pBullet.Move(pBullet.Direction)
+
+		buf, _ := Serialize(pBullet)
+		log.Printf("%v\n", string(buf))
+
+		switch pBullet.Speed {
 		case SpeedSlow:
 			time.Sleep(100 * time.Millisecond)
 
@@ -95,21 +100,21 @@ func (bullet *Bullet) Run() {
 			time.Sleep(10 * time.Millisecond)
 		}
 	}
-	//log.Printf("%v Term\n", bullet.id)
+	//log.Printf("%v Term\n", pBullet.id)
 }
 
-func (bullet *Bullet) UpImg() *ebiten.Image {
+func (pBullet *Bullet) UpImg() *ebiten.Image {
 	return pBulletUpImg
 }
 
-func (bullet *Bullet) DownImg() *ebiten.Image {
+func (pBullet *Bullet) DownImg() *ebiten.Image {
 	return pBulletDownImg
 }
 
-func (bullet *Bullet) LeftImg() *ebiten.Image {
+func (pBullet *Bullet) LeftImg() *ebiten.Image {
 	return pBulletLeftImg
 }
 
-func (bullet *Bullet) RightImg() *ebiten.Image {
+func (pBullet *Bullet) RightImg() *ebiten.Image {
 	return pBulletRightImg
 }
