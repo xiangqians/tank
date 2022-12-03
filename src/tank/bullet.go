@@ -60,7 +60,7 @@ func (pBullet *Bullet) Draw(screen *ebiten.Image) error {
 	}
 
 	// 如果是当前用户所发射的子弹，那么由当前用户轮询设置子弹位置
-	if pBullet.tankId == pTank.Id && pBullet.Status == StatusNew {
+	if pBullet.tankId == pApp.pGame.pTank.Id && pBullet.Status == StatusNew {
 		func() {
 			// 加锁
 			bulletLock.Lock()

@@ -36,7 +36,6 @@ type Endpoint struct {
 }
 
 func (pEndpoint *Endpoint) Listen() {
-
 	// UDP Listen
 	conn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(0, 0, 0, 0), Port: 0})
 	if err != nil {
@@ -52,7 +51,7 @@ func (pEndpoint *Endpoint) Listen() {
 	pEndpoint.LocalAddr = localAddr
 	pEndpoint.Addrs = append(pEndpoint.Addrs, localAddr)
 	log.Printf("localAddr: %v\n", localAddr.String())
-	pGameReg.LocalAddr = localAddr.String()
+	pApp.pReg.LocalAddr = localAddr.String()
 
 	count := 0
 	var buf [2048]byte
@@ -128,7 +127,7 @@ func (pEndpoint *Endpoint) Listen() {
 				case GraphicsTyTank:
 					pTank := &Tank{AbsGraphics: pAbsGraphics}
 					pTank.Init(pTank)
-					addGraphics(pTank)
+					pApp.pGame.AddGraphics(pTank)
 				case GraphicsTyBullet:
 				}
 			}

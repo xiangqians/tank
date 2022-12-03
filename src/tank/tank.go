@@ -21,12 +21,12 @@ func CreateTank(location Location, direction Direction, speed Speed) *Tank {
 
 // 开火
 func (pTank *Tank) Fire() {
-	addGraphics(CreateBullet(pTank, SpeedNormal))
+	pApp.pGame.AddGraphics(CreateBullet(pTank, SpeedNormal))
 }
 
 func (pTank *Tank) Move(direction Direction) {
 	pTank.AbsGraphics.Move(direction)
-	pEndpoint.SendGraphics(pTank)
+	pApp.pEndpoint.SendGraphics(pTank)
 }
 
 func (pTank *Tank) UpImg() *ebiten.Image {
