@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hajimehoshi/ebiten"
+	"math"
 	"reflect"
 )
 
@@ -65,6 +66,8 @@ type Graphics interface {
 
 	// 绘制
 	Draw(screen *ebiten.Image) error
+
+	GetAbsGraphics() *AbsGraphics
 }
 
 // 图形
@@ -76,7 +79,7 @@ type AbsGraphics struct {
 	Speed      Speed         `json:"speed"`      // 速度
 	Status     Status        `json:"status"`     // 状态
 	Hp         uint8         `json:"hp"`         // 生命值
-	pImg       *ebiten.Image // 图片
+	pImage     *ebiten.Image // 图片
 	sub        interface{}   // 子类
 }
 
@@ -89,14 +92,14 @@ func CreateAbsGraphics(graphicsTy GraphicsTy, location Location, direction Direc
 		Speed:      speed,
 		Status:     StatusNew,
 		Hp:         100,
-		pImg:       nil,
+		pImage:     nil,
 		sub:        nil,
 	}
 }
 
 func (pAbsGraphics *AbsGraphics) Init(sub interface{}) {
 	pAbsGraphics.sub = sub
-	pAbsGraphics.pImg = pAbsGraphics.DirectionImg(pAbsGraphics.Direction)
+	pAbsGraphics.pImage = pAbsGraphics.DirectionImage(pAbsGraphics.Direction)
 }
 
 func (pAbsGraphics *AbsGraphics) GetId() string {
@@ -119,7 +122,11 @@ func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
 	op := &ebiten.DrawImageOptions{}
 	location := pAbsGraphics.Location
 	op.GeoM.Translate(location.X, location.Y)
-	return screen.DrawImage(pAbsGraphics.pImg, op)
+	return screen.DrawImage(pAbsGraphics.pImage, op)
+}
+
+func (pAbsGraphics *AbsGraphics) GetAbsGraphics() *AbsGraphics {
+	return pAbsGraphics
 }
 
 func (pAbsGraphics *AbsGraphics) Move(direction Direction) {
@@ -127,43 +134,69 @@ func (pAbsGraphics *AbsGraphics) Move(direction Direction) {
 	// ↓ y
 	pLocation := &pAbsGraphics.Location
 	pAbsGraphics.Direction = direction
-	var pImg *ebiten.Image
+	var pImage *ebiten.Image
 	var xx float64 = 1 + float64(pAbsGraphics.Speed)
 	switch direction {
 	case DirectionUp:
 		newy := pLocation.Y - xx
-		if !pAbsGraphics.refIsOutOfBounds(pLocation.X, newy) {
+		if !pAbsGraphics.callIsOutOfBounds(pLocation.X, newy) {
 			pLocation.Y = newy
 		}
-		pImg = pAbsGraphics.refUpImg()
+		pImage = pAbsGraphics.callUpImage()
 
 	case DirectionDown:
 		newy := pLocation.Y + xx
-		if !pAbsGraphics.refIsOutOfBounds(pLocation.X, newy) {
+		if !pAbsGraphics.callIsOutOfBounds(pLocation.X, newy) {
 			pLocation.Y = newy
 		}
-		pImg = pAbsGraphics.refDownImg()
+		pImage = pAbsGraphics.callDownImage()
 
 	case DirectionLeft:
 		newx := pLocation.X - xx
-		if !pAbsGraphics.refIsOutOfBounds(newx, pLocation.Y) {
+		if !pAbsGraphics.callIsOutOfBounds(newx, pLocation.Y) {
 			pLocation.X = newx
 		}
-		pImg = pAbsGraphics.refLeftImg()
+		pImage = pAbsGraphics.callLeftImage()
 
 	case DirectionRight:
 		newx := pLocation.X + xx
-		if !pAbsGraphics.refIsOutOfBounds(newx, pLocation.Y) {
+		if !pAbsGraphics.callIsOutOfBounds(newx, pLocation.Y) {
 			pLocation.X = newx
 		}
-		pImg = pAbsGraphics.refRightImg()
+		pImage = pAbsGraphics.callRightImage()
 	}
 
-	pAbsGraphics.pImg = pImg
+	pAbsGraphics.pImage = pImage
 }
 
-func (pAbsGraphics *AbsGraphics) refIsOutOfBounds(x, y float64) bool {
-	r := pAbsGraphics.refMethod("IsOutOfBounds", []reflect.Value{reflect.ValueOf(x), reflect.ValueOf(y)})
+// 判断图形是否相交
+func (pAbsGraphics *AbsGraphics) Intersect(pOtherAbsGraphics *AbsGraphics) bool {
+	// 两个矩形相交机几种情况：images/rectangle_itersect.png
+	// 重心距离在X轴和Y轴都小于两矩形的长或宽的一半之和
+
+	width, height := pAbsGraphics.pImage.Size()
+	centerX := pAbsGraphics.Location.X + float64(width/2)
+	centerY := pAbsGraphics.Location.Y + float64(height/2)
+	//log.Printf("center x, y: %v, %v\n", centerX, centerY)
+
+	otherWidth, otherHeight := pOtherAbsGraphics.pImage.Size()
+	otherCenterX := pOtherAbsGraphics.Location.X + float64(otherWidth/2)
+	otherCenterY := pOtherAbsGraphics.Location.Y + float64(otherHeight/2)
+	//log.Printf("otherCenter x, y: %v, %v\n", otherCenterX, otherCenterY)
+
+	centerWidth := math.Abs(centerX - otherCenterX)
+	centerHeight := math.Abs(centerY - otherCenterY)
+	//log.Printf("center Width, Height: %v, %v\n", otherCenterX, otherCenterY)
+
+	if centerWidth < float64((width+otherWidth)/2) && centerHeight < float64((height+otherHeight)/2) {
+		return true
+	}
+
+	return false
+}
+
+func (pAbsGraphics *AbsGraphics) callIsOutOfBounds(x, y float64) bool {
+	r := CallMethod(pAbsGraphics.sub, "IsOutOfBounds", []reflect.Value{reflect.ValueOf(x), reflect.ValueOf(y)})
 	if r != nil {
 		return r.(bool)
 	}
@@ -174,82 +207,78 @@ func (pAbsGraphics *AbsGraphics) refIsOutOfBounds(x, y float64) bool {
 
 // 是否越界
 func (pAbsGraphics *AbsGraphics) IsOutOfBounds(x, y float64) bool {
-	width, height := pAbsGraphics.pImg.Size()
+	width, height := pAbsGraphics.pImage.Size()
 	if x <= 0 || x >= screenWidth-float64(height) || y <= 0 || y >= screenHeight-float64(width) {
 		return true
+	}
+
+	for _, value := range pApp.pGame.GraphicsMap {
+		if value.GetId() == pAbsGraphics.GetId() {
+			continue
+		}
+		if pAbsGraphics.Intersect(value.GetAbsGraphics()) {
+			return true
+		}
 	}
 
 	return false
 }
 
-func (pAbsGraphics *AbsGraphics) DirectionImg(direction Direction) *ebiten.Image {
-	var pImg *ebiten.Image = nil
+func (pAbsGraphics *AbsGraphics) DirectionImage(direction Direction) *ebiten.Image {
+	var pImage *ebiten.Image = nil
 	switch direction {
 	case DirectionUp:
-		pImg = pAbsGraphics.refUpImg()
+		pImage = pAbsGraphics.callUpImage()
 
 	case DirectionDown:
-		pImg = pAbsGraphics.refDownImg()
+		pImage = pAbsGraphics.callDownImage()
 
 	case DirectionLeft:
-		pImg = pAbsGraphics.refLeftImg()
+		pImage = pAbsGraphics.callLeftImage()
 
 	case DirectionRight:
-		pImg = pAbsGraphics.refRightImg()
+		pImage = pAbsGraphics.callRightImage()
 	}
-	return pImg
+	return pImage
 }
 
-func (pAbsGraphics *AbsGraphics) refUpImg() *ebiten.Image {
-	return pAbsGraphics.refNameImg("UpImg")
+func (pAbsGraphics *AbsGraphics) callUpImage() *ebiten.Image {
+	return pAbsGraphics.callNameImage("UpImage")
 }
 
-func (pAbsGraphics *AbsGraphics) refDownImg() *ebiten.Image {
-	return pAbsGraphics.refNameImg("DownImg")
+func (pAbsGraphics *AbsGraphics) callDownImage() *ebiten.Image {
+	return pAbsGraphics.callNameImage("DownImage")
 }
 
-func (pAbsGraphics *AbsGraphics) refLeftImg() *ebiten.Image {
-	return pAbsGraphics.refNameImg("LeftImg")
+func (pAbsGraphics *AbsGraphics) callLeftImage() *ebiten.Image {
+	return pAbsGraphics.callNameImage("LeftImage")
 }
 
-func (pAbsGraphics *AbsGraphics) refRightImg() *ebiten.Image {
-	return pAbsGraphics.refNameImg("RightImg")
+func (pAbsGraphics *AbsGraphics) callRightImage() *ebiten.Image {
+	return pAbsGraphics.callNameImage("RightImage")
 }
 
-func (pAbsGraphics *AbsGraphics) UpImg() *ebiten.Image {
+func (pAbsGraphics *AbsGraphics) UpImage() *ebiten.Image {
 	panic(nil)
 }
 
-func (pAbsGraphics *AbsGraphics) DownImg() *ebiten.Image {
+func (pAbsGraphics *AbsGraphics) DownImage() *ebiten.Image {
 	panic(nil)
 }
 
-func (pAbsGraphics *AbsGraphics) LeftImg() *ebiten.Image {
+func (pAbsGraphics *AbsGraphics) LeftImage() *ebiten.Image {
 	panic(nil)
 }
 
-func (pAbsGraphics *AbsGraphics) RightImg() *ebiten.Image {
+func (pAbsGraphics *AbsGraphics) RightImage() *ebiten.Image {
 	panic(nil)
 }
 
-func (pAbsGraphics *AbsGraphics) refNameImg(name string) *ebiten.Image {
-	r := pAbsGraphics.refMethod(name, nil)
+func (pAbsGraphics *AbsGraphics) callNameImage(name string) *ebiten.Image {
+	r := CallMethod(pAbsGraphics.sub, name, nil)
 	if r != nil {
 		return r.(*ebiten.Image)
 	}
 
 	panic(nil)
-}
-
-// 反射执行方法
-// name: 方法名
-// in: 入参，如果没有参数可以传 nil 或者空切片 make([]reflect.Value, 0)
-func (pAbsGraphics *AbsGraphics) refMethod(name string, in []reflect.Value) interface{} {
-	ref := reflect.ValueOf(pAbsGraphics.sub)
-	method := ref.MethodByName(name)
-	if method.IsValid() {
-		r := method.Call(in)
-		return r[0].Interface()
-	}
-	return nil
 }

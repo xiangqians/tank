@@ -60,6 +60,7 @@ func initLog(outputToFile bool) {
 
 type App struct {
 	pEndpoint              *Endpoint // 端点
+	pImage                 *Image    // 图片
 	pReg                   *Reg      // 注册界面
 	pGame                  *Game     // 游戏界面
 	appStep                AppStep   // App步骤
@@ -67,8 +68,9 @@ type App struct {
 	curKeyPressedUnixNano  int64     // 当前按键 unix nano
 }
 
-func (pApp *App) init() {
+func (pApp *App) Init() {
 	pApp.pEndpoint = &Endpoint{}
+	pApp.pImage = &Image{}
 	pApp.pReg = &Reg{}
 	pApp.pGame = &Game{}
 
@@ -76,6 +78,7 @@ func (pApp *App) init() {
 	go pApp.pEndpoint.Listen()
 
 	// init
+	pApp.pImage.Init()
 	pApp.pReg.Init()
 	pApp.pGame.Init()
 }
@@ -116,7 +119,7 @@ func (pApp *App) Layout(outsideWidth, outsideHeight int) (int, int) {
 func Run() {
 	// app
 	pApp = &App{}
-	pApp.init()
+	pApp.Init()
 
 	// RUN
 	ebiten.SetWindowSize(screenWidth, screenHeight)

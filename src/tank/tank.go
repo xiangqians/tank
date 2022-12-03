@@ -31,18 +31,18 @@ func (pTank *Tank) Move(direction Direction) {
 	pApp.pEndpoint.SendGraphics(pTank)
 }
 
-func (pTank *Tank) UpImg() *ebiten.Image {
-	return pTankUpImg
+func (pTank *Tank) UpImage() *ebiten.Image {
+	return pApp.pImage.pTankUpImage
 }
 
-func (pTank *Tank) DownImg() *ebiten.Image {
-	return pTankDownImg
+func (pTank *Tank) DownImage() *ebiten.Image {
+	return pApp.pImage.pTankDownImage
 }
 
-func (pTank *Tank) LeftImg() *ebiten.Image {
-	return pTankLeftImg
+func (pTank *Tank) LeftImage() *ebiten.Image {
+	return pApp.pImage.pTankLeftImage
 }
 
-func (pTank *Tank) RightImg() *ebiten.Image {
-	return pTankRightImg
+func (pTank *Tank) RightImage() *ebiten.Image {
+	return pApp.pImage.pTankRightImage
 }

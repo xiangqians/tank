@@ -84,8 +84,8 @@ func (pReg *Reg) Update(screen *ebiten.Image) error {
 			}
 			log.Printf("reg addr: %v\n", addr.String())
 			pApp.pEndpoint.SendDgPkt(pDgPkt, addr)
-			pApp.appStep = AppStepGame
 		}
+		pApp.appStep = AppStepGame
 	}
 
 	return nil

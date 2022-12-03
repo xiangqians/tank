@@ -13,33 +13,33 @@ import (
 	"os"
 )
 
-var (
-	pDefaultImg     *ebiten.Image // default
-	pTankUpImg      *ebiten.Image // tank
-	pTankDownImg    *ebiten.Image
-	pTankLeftImg    *ebiten.Image
-	pTankRightImg   *ebiten.Image
-	pBulletUpImg    *ebiten.Image // bullet
-	pBulletDownImg  *ebiten.Image
-	pBulletLeftImg  *ebiten.Image
-	pBulletRightImg *ebiten.Image
-)
+type Image struct {
+	pDefaultImage     *ebiten.Image // default
+	pTankUpImage      *ebiten.Image // tank
+	pTankDownImage    *ebiten.Image
+	pTankLeftImage    *ebiten.Image
+	pTankRightImage   *ebiten.Image
+	pBulletUpImage    *ebiten.Image // bullet
+	pBulletDownImage  *ebiten.Image
+	pBulletLeftImage  *ebiten.Image
+	pBulletRightImage *ebiten.Image
+}
 
-func init() {
+func (pImage *Image) Init() {
 	// default
-	pDefaultImg = NewEbitenImage("images/default.png")
+	pImage.pDefaultImage = NewEbitenImage("images/default.png")
 
 	// tank
-	pTankUpImg = NewEbitenImage("images/tankU.gif")
-	pTankDownImg = NewEbitenImage("images/tankD.gif")
-	pTankLeftImg = NewEbitenImage("images/tankL.gif")
-	pTankRightImg = NewEbitenImage("images/tankR.gif")
+	pImage.pTankUpImage = NewEbitenImage("images/tankU.gif")
+	pImage.pTankDownImage = NewEbitenImage("images/tankD.gif")
+	pImage.pTankLeftImage = NewEbitenImage("images/tankL.gif")
+	pImage.pTankRightImage = NewEbitenImage("images/tankR.gif")
 
 	// bullet
-	pBulletUpImg = NewEbitenImage("images/bulletU.gif")
-	pBulletDownImg = NewEbitenImage("images/bulletD.gif")
-	pBulletLeftImg = NewEbitenImage("images/bulletL.gif")
-	pBulletRightImg = NewEbitenImage("images/bulletR.gif")
+	pImage.pBulletUpImage = NewEbitenImage("images/bulletU.gif")
+	pImage.pBulletDownImage = NewEbitenImage("images/bulletD.gif")
+	pImage.pBulletLeftImage = NewEbitenImage("images/bulletL.gif")
+	pImage.pBulletRightImage = NewEbitenImage("images/bulletR.gif")
 }
 
 func NewEbitenImage(name string) *ebiten.Image {
@@ -55,10 +55,10 @@ func NewEbitenImage(name string) *ebiten.Image {
 		log.Fatal(err)
 	}
 
-	pEbitenImg, err := ebiten.NewImageFromImage(img, ebiten.FilterDefault)
+	pEbitenImage, err := ebiten.NewImageFromImage(img, ebiten.FilterDefault)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return pEbitenImg
+	return pEbitenImage
 }

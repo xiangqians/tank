@@ -22,7 +22,7 @@ type Bullet struct {
 func CreateBullet(pTank *Tank, speed Speed) *Bullet {
 	// 让子弹坐标从坦克中心发出
 	pLocation := pTank.Location
-	width, height := pTank.pImg.Size()
+	width, height := pTank.pImage.Size()
 	//log.Printf("width = %v, height = %v\n", width, height)
 	var location Location
 	switch pTank.Direction {
@@ -92,18 +92,18 @@ func (pBullet *Bullet) Run() {
 	//log.Printf("%v Term\n", pBullet.id)
 }
 
-func (pBullet *Bullet) UpImg() *ebiten.Image {
-	return pBulletUpImg
+func (pBullet *Bullet) UpImage() *ebiten.Image {
+	return pApp.pImage.pBulletUpImage
 }
 
-func (pBullet *Bullet) DownImg() *ebiten.Image {
-	return pBulletDownImg
+func (pBullet *Bullet) DownImage() *ebiten.Image {
+	return pApp.pImage.pBulletDownImage
 }
 
-func (pBullet *Bullet) LeftImg() *ebiten.Image {
-	return pBulletLeftImg
+func (pBullet *Bullet) LeftImage() *ebiten.Image {
+	return pApp.pImage.pBulletLeftImage
 }
 
-func (pBullet *Bullet) RightImg() *ebiten.Image {
-	return pBulletRightImg
+func (pBullet *Bullet) RightImage() *ebiten.Image {
+	return pApp.pImage.pBulletRightImage
 }

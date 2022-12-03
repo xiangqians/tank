@@ -24,6 +24,8 @@ func (pGame *Game) Init() {
 	// TANK
 	pGame.pTank = CreateTank(Location{300, 100}, DirectionRight, SpeedNormal)
 	pGame.AddGraphics(pGame.pTank)
+
+	pGame.AddGraphics(CreateTank(Location{200, 50}, DirectionRight, SpeedNormal))
 }
 
 func (pGame *Game) AddGraphics(graphics Graphics) {
