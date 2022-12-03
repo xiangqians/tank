@@ -27,12 +27,16 @@ const (
 var pApp *App
 
 func init() {
-	initLog()
+	initLog(false)
 }
 
-func initLog() {
+func initLog(outputToFile bool) {
 	// 设置日志格式
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	if !outputToFile {
+		return
+	}
 
 	// 创建日志文件夹，如果不存在的话
 	logDir := "./logs"
@@ -72,8 +76,8 @@ func (pApp *App) init() {
 	go pApp.pEndpoint.Listen()
 
 	// init
-	pApp.pReg.init()
-	pApp.pGame.init()
+	pApp.pReg.Init()
+	pApp.pGame.Init()
 }
 
 func (pApp *App) Update(screen *ebiten.Image) error {

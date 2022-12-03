@@ -27,7 +27,7 @@ type Reg struct {
 	CursorStatus bool
 }
 
-func (pReg *Reg) init() {
+func (pReg *Reg) Init() {
 	tt, err := truetype.Parse(fonts.ArcadeN_ttf)
 	if err != nil {
 		log.Fatal(err)
@@ -79,7 +79,7 @@ func (pReg *Reg) Update(screen *ebiten.Image) error {
 
 			port, _ := strconv.ParseInt(pReg.Port, 10, 64)
 			addr := &net.UDPAddr{
-				IP:   pApp.pEndpoint.LocalAddr.IP,
+				IP:   pApp.pEndpoint.pLocalAddr.IP,
 				Port: int(port),
 			}
 			log.Printf("reg addr: %v\n", addr.String())

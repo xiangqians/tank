@@ -16,7 +16,7 @@ type Game struct {
 	pTank           *Tank                    // 当前用户坦克
 }
 
-func (pGame *Game) init() {
+func (pGame *Game) Init() {
 	pGame.GraphicsMap = make(map[string]Graphics, 8)
 	pGame.GraphicsMapChan = make(chan map[string]Graphics, 1)
 	pGame.GraphicsMapChan <- pGame.GraphicsMap

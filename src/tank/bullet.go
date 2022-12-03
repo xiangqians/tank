@@ -7,7 +7,6 @@ package tank
 
 import (
 	"github.com/hajimehoshi/ebiten"
-	"log"
 	"sync"
 	"time"
 )
@@ -59,35 +58,25 @@ func (pBullet *Bullet) Draw(screen *ebiten.Image) error {
 		return err
 	}
 
-	// 如果是当前用户所发射的子弹，那么由当前用户轮询设置子弹位置
 	if pBullet.tankId == pApp.pGame.pTank.Id && pBullet.Status == StatusNew {
-		func() {
-			// 加锁
-			bulletLock.Lock()
-
-			if pBullet.Status == StatusNew {
-				go pBullet.Run()
-				pBullet.Status = StatusRun
-			}
-
-			// 释放锁
-			defer bulletLock.Unlock()
-		}()
 	}
 
 	return nil
 }
 
+// 如果是当前用户所发射的子弹，那么由当前用户轮询设置子弹位置
 func (pBullet *Bullet) Run() {
+	if pBullet.Status == StatusNew {
+		pBullet.Status = StatusRun
+	}
+
 	for {
 		if pBullet.Status != StatusRun {
 			break
 		}
 
 		pBullet.Move(pBullet.Direction)
-
-		buf, _ := Serialize(pBullet)
-		log.Printf("%v\n", string(buf))
+		pApp.pEndpoint.SendGraphics(pBullet)
 
 		switch pBullet.Speed {
 		case SpeedSlow:

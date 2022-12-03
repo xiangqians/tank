@@ -30,9 +30,9 @@ type DgPkt struct {
 }
 
 type Endpoint struct {
-	Conn      *net.UDPConn   // 当前端点连接
-	LocalAddr *net.UDPAddr   // 本地地址
-	Addrs     []*net.UDPAddr // 本地&远程端点udp地址集切片
+	pConn      *net.UDPConn   // 当前端点连接
+	pLocalAddr *net.UDPAddr   // 本地地址
+	pAddrs     []*net.UDPAddr // 本地&远程端点udp地址集切片
 }
 
 func (pEndpoint *Endpoint) Listen() {
@@ -45,11 +45,11 @@ func (pEndpoint *Endpoint) Listen() {
 	// 关闭连接
 	defer conn.Close()
 
-	pEndpoint.Conn = conn
+	pEndpoint.pConn = conn
 	port := conn.LocalAddr().(*net.UDPAddr).Port
 	localAddr := &net.UDPAddr{IP: LocalIp(), Port: port}
-	pEndpoint.LocalAddr = localAddr
-	pEndpoint.Addrs = append(pEndpoint.Addrs, localAddr)
+	pEndpoint.pLocalAddr = localAddr
+	pEndpoint.pAddrs = append(pEndpoint.pAddrs, localAddr)
 	log.Printf("localAddr: %v\n", localAddr.String())
 	pApp.pReg.LocalAddr = localAddr.String()
 
@@ -57,7 +57,7 @@ func (pEndpoint *Endpoint) Listen() {
 	var buf [2048]byte
 	for {
 		// 读取数据
-		n, addr, err := conn.ReadFromUDP(buf[:])
+		n, pAddr, err := conn.ReadFromUDP(buf[:])
 		if err != nil {
 			if count > 8 {
 				panic(err)
@@ -77,63 +77,89 @@ func (pEndpoint *Endpoint) Listen() {
 
 		switch pDgPkt.DgPktTy {
 		case DgPktTyReg:
-			pEndpoint.Addrs = append(pEndpoint.Addrs, addr)
-			pDgPkt := &DgPkt{}
-			pDgPkt.DgPktTy = DgPktTyDiscov
-			addrs := pEndpoint.Addrs
-			var addrsStr string
-			for _, a := range addrs {
-				addrsStr += a.String() + ","
-			}
-			pDgPkt.Data = []byte(addrsStr)
-			log.Printf("addrsStr: %v\n", addrsStr)
-			pEndpoint.SendDgPktToAddrs(pDgPkt)
+			pEndpoint.receiveRegDgPkt(pDgPkt, pAddr)
 
 		case DgPktTyDiscov:
-			addrsStr := string(pDgPkt.Data)
-			log.Printf("Discov: %v\n", addrsStr)
-			addrStrArr := strings.Split(addrsStr, ",")
-			for i, as := range addrStrArr {
-				as = strings.TrimSpace(as)
-				if as == "" {
-					continue
-				}
-				log.Printf("%v, %v\n", i, as)
-
-				flag := true
-				for _, _as := range pEndpoint.Addrs {
-					if _as.String() == as {
-						flag = false
-						break
-					}
-				}
-				if flag {
-					asAddr, _ := net.ResolveUDPAddr("udp", as)
-					pEndpoint.Addrs = append(pEndpoint.Addrs, asAddr)
-					pDgPkt := &DgPkt{}
-					pDgPkt.DgPktTy = DgPktTyHb
-					log.Printf("hb: %v\n", asAddr.String())
-					pEndpoint.SendDgPkt(pDgPkt, asAddr)
-				}
-			}
+			pEndpoint.receiveDiscovDgPkt(pDgPkt, pAddr)
 
 		case DgPktTyHb:
+			pEndpoint.receiveHbDgPkt(pDgPkt, pAddr)
+
 		case DgPktTyData:
-			pAbsGraphics := &AbsGraphics{}
-			err := Deserialize(pDgPkt.Data, pAbsGraphics)
-			if err == nil {
-				log.Printf("addr: %v, graphics: %v\n", addr, pAbsGraphics)
-				switch pAbsGraphics.GraphicsTy {
-				case GraphicsTyTank:
-					pTank := &Tank{AbsGraphics: pAbsGraphics}
-					pTank.Init(pTank)
-					pApp.pGame.AddGraphics(pTank)
-				case GraphicsTyBullet:
-				}
+			pEndpoint.receiveDataDgPkt(pDgPkt, pAddr)
+		}
+	}
+}
+
+// 接收到注册数据包
+func (pEndpoint *Endpoint) receiveRegDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
+	log.Printf("receiveRegDgPkt: %v\n", pAddr.String())
+
+	// 添加到 本地&远程端点udp地址集切片
+	pEndpoint.pAddrs = append(pEndpoint.pAddrs, pAddr)
+
+	// SendDiscovDgPktToAddrs
+	pDgPkt.DgPktTy = DgPktTyDiscov
+	var addrsStr string
+	for _, a := range pEndpoint.pAddrs {
+		addrsStr += a.String() + ","
+	}
+	pDgPkt.Data = []byte(addrsStr)
+	log.Printf("SendDiscovDgPktToAddrs: %v\n", addrsStr)
+	pEndpoint.SendDgPktToAddrs(pDgPkt)
+}
+
+// 接收到发现数据包
+func (pEndpoint *Endpoint) receiveDiscovDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
+	addrsStr := string(pDgPkt.Data)
+	log.Printf("receiveDiscovDgPkt: %v, %v\n", pAddr.String(), addrsStr)
+	addrsStrArr := strings.Split(addrsStr, ",")
+	for i, as := range addrsStrArr {
+		as = strings.TrimSpace(as)
+		if as == "" {
+			continue
+		}
+		log.Printf("%v, %v\n", i, as)
+
+		flag := true
+		for _, _as := range pEndpoint.pAddrs {
+			if _as.String() == as {
+				flag = false
+				break
 			}
 		}
+		if flag {
+			asAddr, _ := net.ResolveUDPAddr("udp", as)
+			pEndpoint.pAddrs = append(pEndpoint.pAddrs, asAddr)
+			pDgPkt.DgPktTy = DgPktTyHb
+			pDgPkt.Data = nil
+			//log.Printf("hb: %v\n", asAddr.String())
+			pEndpoint.SendDgPkt(pDgPkt, asAddr)
+		}
+	}
+}
 
-		for i, length := 0, len(pEndpoint.Addrs); i < length; i++ {
+// 接收到心跳数据包
+func (pEndpoint *Endpoint) receiveHbDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
+	log.Printf("receiveHbDgPkt: %v\n", pAddr.String())
+}
+
+// 接收到数据包
+func (pEndpoint *Endpoint) receiveDataDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
+	pAbsGraphics := &AbsGraphics{}
+	err := Deserialize(pDgPkt.Data, pAbsGraphics)
+	if err == nil {
+		log.Printf("addr: %v, graphics: %v\n", pAddr.String(), pAbsGraphics)
+		switch pAbsGraphics.GraphicsTy {
+		case GraphicsTyTank:
+			pTank := &Tank{AbsGraphics: pAbsGraphics}
+			pTank.Init(pTank)
+			pApp.pGame.AddGraphics(pTank)
+
+		case GraphicsTyBullet:
+			pBullet := &Bullet{AbsGraphics: pAbsGraphics}
+			pBullet.Init(pBullet)
+			pApp.pGame.AddGraphics(pBullet)
 		}
 	}
 }
@@ -156,9 +182,9 @@ func (pEndpoint *Endpoint) SendDgPktToAddrs(pDgPkt *DgPkt) {
 		return
 	}
 
-	for i, length := 0, len(pEndpoint.Addrs); i < length; i++ {
-		addr := pEndpoint.Addrs[i]
-		if UDPAddrEqual(addr, pEndpoint.LocalAddr) {
+	for i, length := 0, len(pEndpoint.pAddrs); i < length; i++ {
+		addr := pEndpoint.pAddrs[i]
+		if UDPAddrEqual(addr, pEndpoint.pLocalAddr) {
 			continue
 		}
 
@@ -178,7 +204,7 @@ func (pEndpoint *Endpoint) SendDgPkt(pDgPkt *DgPkt, addr *net.UDPAddr) {
 
 // 写入数据
 func (pEndpoint *Endpoint) Write(data []byte, addr *net.UDPAddr) (int, error) {
-	return pEndpoint.Conn.WriteToUDP(data, addr)
+	return pEndpoint.pConn.WriteToUDP(data, addr)
 }
 
 func UDPAddrEqual(v1, v2 *net.UDPAddr) bool {
