@@ -51,7 +51,7 @@ func (pEndpoint *Endpoint) Listen() {
 	pEndpoint.pLocalAddr = localAddr
 	pEndpoint.pAddrs = append(pEndpoint.pAddrs, localAddr)
 	log.Printf("localAddr: %v\n", localAddr.String())
-	pApp.pReg.LocalAddr = localAddr.String()
+	pApp.pReg.SetLocalAddr(localAddr.String())
 
 	count := 0
 	var buf [2048]byte

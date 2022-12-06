@@ -49,6 +49,8 @@ func (pBullet *Bullet) IsOutOfBounds(x, y float64) bool {
 	r := pBullet.AbsGraphics.IsOutOfBounds(x, y)
 	if r {
 		pBullet.Status = StatusTerm
+		//log.Printf("Bullet OutOfBounds, %v\n", pBullet.GetId())
+		pApp.pGame.DelGraphics(pBullet)
 	}
 	return r
 }

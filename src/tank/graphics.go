@@ -170,25 +170,27 @@ func (pAbsGraphics *AbsGraphics) Move(direction Direction) {
 }
 
 // 判断图形是否相交
-func (pAbsGraphics *AbsGraphics) Intersect(pOtherAbsGraphics *AbsGraphics) bool {
+func (pAbsGraphics *AbsGraphics) Intersect(x, y float64, pOtherAbsGraphics *AbsGraphics) bool {
 	// 两个矩形相交机几种情况：images/rectangle_itersect.png
 	// 重心距离在X轴和Y轴都小于两矩形的长或宽的一半之和
 
 	width, height := pAbsGraphics.pImage.Size()
-	centerX := pAbsGraphics.Location.X + float64(width/2)
-	centerY := pAbsGraphics.Location.Y + float64(height/2)
-	//log.Printf("center x, y: %v, %v\n", centerX, centerY)
+	//centerX := pAbsGraphics.Location.X + float64(width/2)
+	//centerY := pAbsGraphics.Location.Y + float64(height/2)
+	centerX := x + float64(width/2)
+	centerY := y + float64(height/2)
+	//log.Printf("center x: %v, y: %v\n", centerX, centerY)
 
 	otherWidth, otherHeight := pOtherAbsGraphics.pImage.Size()
 	otherCenterX := pOtherAbsGraphics.Location.X + float64(otherWidth/2)
 	otherCenterY := pOtherAbsGraphics.Location.Y + float64(otherHeight/2)
-	//log.Printf("otherCenter x, y: %v, %v\n", otherCenterX, otherCenterY)
+	//log.Printf("otherCenter x: %v, y: %v\n", otherCenterX, otherCenterY)
 
 	centerWidth := math.Abs(centerX - otherCenterX)
 	centerHeight := math.Abs(centerY - otherCenterY)
-	//log.Printf("center Width, Height: %v, %v\n", otherCenterX, otherCenterY)
+	//log.Printf("center width: %v, height: %v\n", centerWidth, centerHeight)
 
-	if centerWidth < float64((width+otherWidth)/2) && centerHeight < float64((height+otherHeight)/2) {
+	if centerWidth <= float64((width+otherWidth)/2) && centerHeight <= float64((height+otherHeight)/2) {
 		return true
 	}
 
@@ -216,7 +218,7 @@ func (pAbsGraphics *AbsGraphics) IsOutOfBounds(x, y float64) bool {
 		if value.GetId() == pAbsGraphics.GetId() {
 			continue
 		}
-		if pAbsGraphics.Intersect(value.GetAbsGraphics()) {
+		if pAbsGraphics.Intersect(x, y, value.GetAbsGraphics()) {
 			return true
 		}
 	}

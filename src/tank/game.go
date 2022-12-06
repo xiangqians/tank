@@ -25,11 +25,15 @@ func (pGame *Game) Init() {
 	pGame.pTank = CreateTank(Location{300, 100}, DirectionRight, SpeedNormal)
 	pGame.AddGraphics(pGame.pTank)
 
-	pGame.AddGraphics(CreateTank(Location{200, 50}, DirectionRight, SpeedNormal))
+	pGame.AddGraphics(CreateTank(Location{400, 200}, DirectionRight, SpeedNormal))
 }
 
 func (pGame *Game) AddGraphics(graphics Graphics) {
 	pGame.GraphicsMap[graphics.GetId()] = graphics
+}
+
+func (pGame *Game) DelGraphics(graphics Graphics) {
+	delete(pGame.GraphicsMap, graphics.GetId())
 }
 
 func (pGame *Game) Update(screen *ebiten.Image) error {

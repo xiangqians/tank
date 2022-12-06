@@ -5,6 +5,7 @@ package tank
 
 import (
 	"github.com/hajimehoshi/ebiten"
+	"io"
 	"log"
 	"os"
 	"time"
@@ -27,16 +28,12 @@ const (
 var pApp *App
 
 func init() {
-	initLog(false)
+	initLog()
 }
 
-func initLog(outputToFile bool) {
+func initLog() {
 	// 设置日志格式
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-
-	if !outputToFile {
-		return
-	}
 
 	// 创建日志文件夹，如果不存在的话
 	logDir := "./logs"
@@ -55,7 +52,7 @@ func initLog(outputToFile bool) {
 	}
 
 	// 设置日志输出
-	log.SetOutput(pLogFile)
+	log.SetOutput(io.MultiWriter(pLogFile, os.Stdout))
 }
 
 type App struct {
