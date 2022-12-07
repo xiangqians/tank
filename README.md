@@ -1,22 +1,10 @@
-# pkg/mod
+# 游戏指南
 
-## ebiten
-
-[GitHub](https://github.com/hajimehoshi/ebiten)
-
-[ebiten](https://ebitengine.org/)
-
-## uuid
-
-[uuid GitHub](https://github.com/google/uuid)
-
-# go run
+## go run
 
 ```shell
 $ go run main.go
 ```
-
-# 游戏指南
 
 ## 程序参数说明
 
@@ -45,3 +33,15 @@ $ go run main.go
 ## 游戏界面
 
 ![注册界面](https://github.com/xiangqians/tank-go/raw/master/doc/img/reg.png)
+
+# pkg/mod
+
+## ebiten
+
+[GitHub](https://github.com/hajimehoshi/ebiten)
+
+[ebitengine.org](https://ebitengine.org/)
+
+## uuid
+
+[GitHub](https://github.com/google/uuid)
