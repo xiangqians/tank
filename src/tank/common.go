@@ -5,7 +5,11 @@ package tank
 
 import (
 	"encoding/json"
+	"github.com/golang/freetype/truetype"
 	"github.com/google/uuid"
+	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
+	"golang.org/x/image/font"
+	"log"
 	"reflect"
 )
 
@@ -52,4 +56,18 @@ func CallField(i any, name string, in []reflect.Value) []reflect.Value {
 		return r
 	}
 	return nil
+}
+
+// 字体表面
+// font.Face
+func CreateFontFace(size, dpi float64) font.Face {
+	tt, err := truetype.Parse(fonts.ArcadeN_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return truetype.NewFace(tt, &truetype.Options{
+		Size:    size,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
 }

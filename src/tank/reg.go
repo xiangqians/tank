@@ -5,9 +5,7 @@ package tank
 
 import (
 	"fmt"
-	"github.com/golang/freetype/truetype"
 	"github.com/hajimehoshi/ebiten"
-	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"github.com/hajimehoshi/ebiten/inpututil"
 	"github.com/hajimehoshi/ebiten/text"
 	"golang.org/x/image/font"
@@ -36,16 +34,7 @@ type Reg struct {
 }
 
 func (pReg *Reg) Init() {
-	tt, err := truetype.Parse(fonts.ArcadeN_ttf)
-	if err != nil {
-		log.Fatal(err)
-	}
-	pReg.ArcadeFont = truetype.NewFace(tt, &truetype.Options{
-		Size:    16,
-		DPI:     72,
-		Hinting: font.HintingFull,
-	})
-
+	pReg.ArcadeFont = CreateFontFace(16, 72)
 	pReg.InputFlag = InputFlagIp
 
 	go func() {

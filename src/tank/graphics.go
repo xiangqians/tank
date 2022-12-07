@@ -8,6 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hajimehoshi/ebiten"
+	"github.com/hajimehoshi/ebiten/text"
+	"golang.org/x/image/font"
+	"image/color"
 	"math"
 	"reflect"
 )
@@ -51,6 +54,14 @@ const (
 type Location struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
+}
+
+// 坦克元数据字体
+// Metadata
+var tankMdFont font.Face
+
+func init() {
+	tankMdFont = CreateFontFace(8, 72)
 }
 
 // 图形
@@ -138,10 +149,33 @@ func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
 		return errors.New(fmt.Sprintf("the %v has been terminated", pAbsGraphics.Id))
 	}
 
+	// 绘制坦克
 	op := &ebiten.DrawImageOptions{}
 	location := pAbsGraphics.Location
 	op.GeoM.Translate(location.X, location.Y)
-	return screen.DrawImage(pAbsGraphics.pImage, op)
+	err := screen.DrawImage(pAbsGraphics.pImage, op)
+
+	if err == nil {
+		// 绘制坦克元数据
+		if pAbsGraphics.GraphicsTy == GraphicsTyTank {
+			textX := int(location.X)
+			textY := int(location.Y)
+			switch pAbsGraphics.Direction {
+			case DirectionUp:
+				_, height := pAbsGraphics.pImage.Size()
+				textY += height + 10
+			case DirectionDown:
+				textY -= 8
+			case DirectionLeft:
+				textY -= 8
+			case DirectionRight:
+				textY -= 8
+			}
+			text.Draw(screen, fmt.Sprintf("HP: %v", pAbsGraphics.GetHp()), tankMdFont, textX, textY, color.White)
+		}
+	}
+
+	return err
 }
 
 func (pAbsGraphics *AbsGraphics) GetAbsGraphics() *AbsGraphics {
