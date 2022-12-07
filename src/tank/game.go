@@ -17,13 +17,19 @@ type Game struct {
 	pTank           *Tank                    // 当前用户坦克
 }
 
+// 坦克默认速度
+var DefaultTankSpeed = SpeedNormal
+
+// 子弹默认速度
+var DefaultBulletSpeed = SpeedNormal
+
 func (pGame *Game) Init() {
 	pGame.GraphicsMap = make(map[string]Graphics, 8)
 	pGame.GraphicsMapChan = make(chan map[string]Graphics, 1)
 	pGame.GraphicsMapChan <- pGame.GraphicsMap
 
 	// TANK
-	pGame.pTank = CreateTank(Location{300, 100}, DirectionRight, SpeedNormal)
+	pGame.pTank = CreateTank(Location{300, 100}, DirectionRight, DefaultTankSpeed)
 	pGame.AddGraphics(pGame.pTank)
 
 	// test

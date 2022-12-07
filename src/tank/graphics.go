@@ -17,10 +17,10 @@ import (
 
 // type
 type (
-	Direction  int8  // 方向
-	Speed      int16 // 速度
-	Status     int8  // 状态
-	GraphicsTy int8  // 图像类型
+	Direction  int8 // 方向
+	Speed      int8 // 速度
+	Status     int8 // 状态
+	GraphicsTy int8 // 图像类型
 )
 
 // 方向
@@ -62,6 +62,18 @@ var tankMdFont font.Face
 
 func init() {
 	tankMdFont = CreateFontFace(8, 72)
+}
+
+func GetSpeedByName(name string) (Speed, error) {
+	switch name {
+	case "SpeedSlow":
+		return SpeedSlow, nil
+	case "SpeedNormal":
+		return SpeedNormal, nil
+	case "SpeedFast":
+		return SpeedFast, nil
+	}
+	return 0, errors.New("unknown name")
 }
 
 // 图形

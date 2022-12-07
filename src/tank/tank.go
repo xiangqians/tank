@@ -21,7 +21,7 @@ func CreateTank(location Location, direction Direction, speed Speed) *Tank {
 
 // 开火
 func (pTank *Tank) Fire() {
-	pBullet := CreateBullet(pTank, SpeedNormal)
+	pBullet := CreateBullet(pTank, DefaultBulletSpeed)
 	pApp.pGame.AddGraphics(pBullet)
 	go pBullet.Run()
 }

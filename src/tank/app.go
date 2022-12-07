@@ -4,6 +4,7 @@
 package tank
 
 import (
+	"flag"
 	"github.com/hajimehoshi/ebiten"
 	"io"
 	"log"
@@ -114,6 +115,23 @@ func (pApp *App) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func Run() {
+	// args
+	var defaultTankSpeed string
+	var defaultBulletSpeed string
+	// -DefaultTankSpeed SpeedSlow
+	flag.StringVar(&defaultTankSpeed, "DefaultTankSpeed", "SpeedNormal", "Set Tank Default Speed")
+	// -DefaultBulletSpeed SpeedSlow
+	flag.StringVar(&defaultBulletSpeed, "DefaultBulletSpeed", "SpeedNormal", "Set Bullet Default Speed")
+	flag.Parse()
+	speed, err := GetSpeedByName(defaultTankSpeed)
+	if err == nil {
+		DefaultTankSpeed = speed
+	}
+	speed, err = GetSpeedByName(defaultBulletSpeed)
+	if err == nil {
+		DefaultBulletSpeed = speed
+	}
+
 	// app
 	pApp = &App{}
 	pApp.Init()
@@ -121,7 +139,7 @@ func Run() {
 	// RUN
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Tank")
-	if err := ebiten.RunGame(pApp); err != nil {
+	if err = ebiten.RunGame(pApp); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -107,16 +107,7 @@ func (pBullet *Bullet) Run() {
 			break
 		}
 
-		switch pBullet.Speed {
-		case SpeedSlow:
-			time.Sleep(100 * time.Millisecond)
-
-		case SpeedNormal:
-			time.Sleep(50 * time.Millisecond)
-
-		case SpeedFast:
-			time.Sleep(10 * time.Millisecond)
-		}
+		time.Sleep(time.Duration(pBullet.Speed) * time.Millisecond)
 	}
 	//log.Printf("%v Term\n", pBullet.id)
 }
