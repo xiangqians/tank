@@ -33,7 +33,7 @@ const (
 
 // 速度
 const (
-	SpeedSlow Speed = (iota + 1) * 2
+	SpeedSlow Speed = iota
 	SpeedNormal
 	SpeedFast
 )
@@ -66,11 +66,11 @@ func init() {
 
 func GetSpeedByName(name string) (Speed, error) {
 	switch name {
-	case "SpeedSlow":
+	case "Slow":
 		return SpeedSlow, nil
-	case "SpeedNormal":
+	case "Normal":
 		return SpeedNormal, nil
-	case "SpeedFast":
+	case "Fast":
 		return SpeedFast, nil
 	}
 	return 0, errors.New("unknown name")
@@ -205,12 +205,24 @@ func (pAbsGraphics *AbsGraphics) GetAbsGraphics() *AbsGraphics {
 }
 
 func (pAbsGraphics *AbsGraphics) Move(direction Direction) {
+
+	// Speed value
+	var speedValue float64 = 1
+	switch pAbsGraphics.Speed {
+	case SpeedSlow:
+		speedValue += 1
+	case SpeedNormal:
+		speedValue += 3
+	case SpeedFast:
+		speedValue += 5
+	}
+
 	// -→ x
 	// ↓ y
 	pLocation := &pAbsGraphics.Location
 	pAbsGraphics.Direction = direction
 	var pImage *ebiten.Image
-	var xx float64 = 1 + float64(pAbsGraphics.Speed)
+	var xx float64 = 1 + speedValue
 	switch direction {
 	case DirectionUp:
 		newy := pLocation.Y - xx

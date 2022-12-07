@@ -118,9 +118,9 @@ func Run() {
 	// args
 	var defaultTankSpeed string
 	var defaultBulletSpeed string
-	// -DefaultTankSpeed SpeedSlow
+	// -DefaultTankSpeed Slow
 	flag.StringVar(&defaultTankSpeed, "DefaultTankSpeed", "SpeedNormal", "Set Tank Default Speed")
-	// -DefaultBulletSpeed SpeedSlow
+	// -DefaultBulletSpeed Slow
 	flag.StringVar(&defaultBulletSpeed, "DefaultBulletSpeed", "SpeedNormal", "Set Bullet Default Speed")
 	flag.Parse()
 	speed, err := GetSpeedByName(defaultTankSpeed)

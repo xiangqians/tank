@@ -107,7 +107,20 @@ func (pBullet *Bullet) Run() {
 			break
 		}
 
-		time.Sleep(time.Duration(pBullet.Speed) * time.Millisecond)
+		// Speed value
+		var speedValue int8
+		switch pBullet.Speed {
+		case SpeedSlow:
+			speedValue = 10
+		case SpeedNormal:
+			speedValue = 5
+		case SpeedFast:
+			speedValue = 2
+		default:
+			speedValue = 16
+		}
+
+		time.Sleep(time.Duration(speedValue) * time.Millisecond)
 	}
 	//log.Printf("%v Term\n", pBullet.id)
 }
