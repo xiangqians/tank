@@ -20,22 +20,26 @@ import (
 type InputFlag int8
 
 const (
-	InputFlagIp = iota + 1
+	InputFlagName = iota + 1
+	InputFlagIp
 	InputFlagPort
 )
 
 type Reg struct {
 	LocalAddr    string
+	Name         string
 	Ip           string
 	Port         string
 	ArcadeFont   font.Face
+	TitleFont    font.Face
 	InputFlag    InputFlag
 	CursorStatus bool
 }
 
 func (pReg *Reg) Init() {
 	pReg.ArcadeFont = CreateFontFace(16, 72)
-	pReg.InputFlag = InputFlagIp
+	pReg.TitleFont = CreateFontFace(64, 72)
+	pReg.InputFlag = InputFlagName
 
 	go func() {
 		for pApp.appStep == AppStepReg {
@@ -50,70 +54,95 @@ func (pReg *Reg) SetLocalAddr(localAddr string) {
 	pReg.Ip = strings.Split(pReg.LocalAddr, ":")[0]
 }
 
-func (pReg *Reg) Append(a string) {
-	// ip
-	if pReg.InputFlag == InputFlagIp {
-		ip := pReg.Ip
-		length := len(ip)
-		if length >= len("255.255.255.255") {
-			return
-		}
-
-		if a == "." && (length == 0 || strings.Count(ip, ".") >= 3) {
-			return
-		}
-
-		if a == "." && length > 0 && string(ip[length-1]) == a {
-			return
-		}
-
-		lastIndex := strings.LastIndex(ip, ".")
-
-		if strings.Count(ip, ".") >= 3 && length-lastIndex > 3 {
-			return
-		}
-
-		if lastIndex > 0 && length-lastIndex <= 3 {
-			i, _ := strconv.ParseInt(ip[lastIndex+1:]+a, 10, 64)
-			log.Printf("i = %v, %v\n", ip[lastIndex+1:]+a, i)
-			if i > 255 {
-				return
-			}
-		}
-
-		if (lastIndex == -1 && length == 3) || (lastIndex > 0 && length-lastIndex > 3) {
-			pReg.Ip += "."
-		}
-
-		pReg.Ip += a
+func (pReg *Reg) AppendName(a string) {
+	if pReg.InputFlag != InputFlagName {
 		return
 	}
 
-	// port
-	if len(pReg.Port) >= 5 || a == "." {
+	if len(pReg.Name) >= 8 {
 		return
 	}
+
+	pReg.Name += a
+}
+
+func (pReg *Reg) AppendIp(a string) {
+	if pReg.InputFlag != InputFlagIp {
+		return
+	}
+
+	ip := pReg.Ip
+	length := len(ip)
+	if length >= len("255.255.255.255") {
+		return
+	}
+
+	if a == "." && (length == 0 || strings.Count(ip, ".") >= 3) {
+		return
+	}
+
+	if a == "." && length > 0 && string(ip[length-1]) == a {
+		return
+	}
+
+	lastIndex := strings.LastIndex(ip, ".")
+
+	if strings.Count(ip, ".") >= 3 && length-lastIndex > 3 {
+		return
+	}
+
+	if lastIndex > 0 && length-lastIndex <= 3 {
+		i, _ := strconv.ParseInt(ip[lastIndex+1:]+a, 10, 64)
+		//log.Printf("i = %v, %v\n", ip[lastIndex+1:]+a, i)
+		if i > 255 {
+			return
+		}
+	}
+
+	if a != "." && ((lastIndex == -1 && length == 3) || (lastIndex > 0 && length-lastIndex > 3)) {
+		pReg.Ip += "."
+	}
+
+	pReg.Ip += a
+}
+
+func (pReg *Reg) AppendPort(a string) {
+	if pReg.InputFlag != InputFlagPort {
+		return
+	}
+
+	if len(pReg.Port) >= 5 {
+		return
+	}
+
 	pReg.Port += a
 }
 
 func (pReg *Reg) Subtract() {
-	// ip
-	if pReg.InputFlag == InputFlagIp {
+	switch pReg.InputFlag {
+	case InputFlagName:
+		length := len(pReg.Name)
+		if length > 0 {
+			pReg.Name = pReg.Name[:length-1]
+		}
+
+	case InputFlagIp:
 		length := len(pReg.Ip)
 		if length > 0 {
 			pReg.Ip = pReg.Ip[:length-1]
 		}
-		return
-	}
 
-	// port
-	length := len(pReg.Port)
-	if length > 0 {
-		pReg.Port = pReg.Port[:length-1]
+	case InputFlagPort:
+		length := len(pReg.Port)
+		if length > 0 {
+			pReg.Port = pReg.Port[:length-1]
+		}
 	}
 }
 
 func (pReg *Reg) SendRegDgPkt() {
+	pApp.pGame.pTank.Name = pReg.Name
+
 	ip := pReg.Ip
 	var ipArr []string = nil
 	if len(ip) > 0 {
@@ -141,31 +170,79 @@ func (pReg *Reg) SendRegDgPkt() {
 
 func (pReg *Reg) Update(screen *ebiten.Image) error {
 	if inpututil.IsKeyJustPressed(ebiten.KeyKP0) || inpututil.IsKeyJustPressed(ebiten.Key0) {
-		pReg.Append("0")
+		a := "0"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyKP1) || inpututil.IsKeyJustPressed(ebiten.Key1) {
-		pReg.Append("1")
+		a := "1"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyKP2) || inpututil.IsKeyJustPressed(ebiten.Key2) {
-		pReg.Append("2")
+		a := "2"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyKP3) || inpututil.IsKeyJustPressed(ebiten.Key3) {
-		pReg.Append("3")
+		a := "3"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyKP4) || inpututil.IsKeyJustPressed(ebiten.Key4) {
-		pReg.Append("4")
+		a := "4"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyKP5) || inpututil.IsKeyJustPressed(ebiten.Key5) {
-		pReg.Append("5")
+		a := "5"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyKP6) || inpututil.IsKeyJustPressed(ebiten.Key6) {
-		pReg.Append("6")
+		a := "6"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyKP7) || inpututil.IsKeyJustPressed(ebiten.Key7) {
-		pReg.Append("7")
+		a := "7"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyKP8) || inpututil.IsKeyJustPressed(ebiten.Key8) {
-		pReg.Append("8")
+		a := "8"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyKP9) || inpututil.IsKeyJustPressed(ebiten.Key9) {
-		pReg.Append("9")
+		a := "9"
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+		pReg.AppendPort(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
-		pReg.InputFlag = InputFlagIp ^ InputFlagPort ^ pReg.InputFlag
+		pReg.InputFlag++
+		if pReg.InputFlag > InputFlagPort {
+			pReg.InputFlag = InputFlagName
+		}
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyPeriod) { // “.” 按键
-		pReg.Append(".")
+		a := "."
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) {
 		pReg.Subtract()
+
 	} else if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
 		pReg.SendRegDgPkt()
 	}
@@ -178,14 +255,30 @@ func (pReg *Reg) Draw(screen *ebiten.Image) {
 	y := screenHeight/2 - 200
 
 	text.Draw(screen,
-		fmt.Sprintf("localAddr %v", pReg.LocalAddr),
+		"TANK",
+		pReg.TitleFont,
+		x, y,
+		color.White)
+
+	y += 100
+	text.Draw(screen,
+		fmt.Sprintf("LocalAddr %v", pReg.LocalAddr),
+		pReg.ArcadeFont,
+		x, y,
+		color.White)
+
+	y += 50
+	nameY := y
+	nameText := fmt.Sprintf("Name: %v", pReg.Name)
+	text.Draw(screen,
+		nameText,
 		pReg.ArcadeFont,
 		x, y,
 		color.White)
 
 	y += 100
 	ipY := y
-	ipText := fmt.Sprintf("IP:   %v", pReg.Ip)
+	ipText := fmt.Sprintf("IP  : %v", pReg.Ip)
 	text.Draw(screen,
 		ipText,
 		pReg.ArcadeFont,
@@ -203,10 +296,15 @@ func (pReg *Reg) Draw(screen *ebiten.Image) {
 
 	if pReg.CursorStatus {
 		var t string
-		if pReg.InputFlag == InputFlagIp {
+
+		switch pReg.InputFlag {
+		case InputFlagName:
+			t = nameText
+			y = nameY
+		case InputFlagIp:
 			t = ipText
 			y = ipY
-		} else {
+		case InputFlagPort:
 			t = portText
 			y = portY
 		}
