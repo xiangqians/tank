@@ -63,7 +63,8 @@ func (pReg *Reg) AppendName(a string) {
 		return
 	}
 
-	pReg.Name += a
+	//pReg.Name += a
+	pReg.Name += strings.ToUpper(a)
 }
 
 func (pReg *Reg) AppendIp(a string) {
@@ -229,21 +230,129 @@ func (pReg *Reg) Update(screen *ebiten.Image) error {
 		pReg.AppendIp(a)
 		pReg.AppendPort(a)
 
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyTab) {
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyA) {
+		a := "a"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyB) {
+		a := "b"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyC) {
+		a := "c"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyD) {
+		a := "d"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyE) {
+		a := "e"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyF) {
+		a := "f"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyG) {
+		a := "g"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyH) {
+		a := "h"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyI) {
+		a := "i"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyJ) {
+		a := "j"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyK) {
+		a := "k"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyL) {
+		a := "l"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyM) {
+		a := "m"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyN) {
+		a := "n"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyO) {
+		a := "o"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyP) {
+		a := "p"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyQ) {
+		a := "q"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyR) {
+		a := "r"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyS) {
+		a := "s"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyT) {
+		a := "t"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyU) {
+		a := "u"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyV) {
+		a := "v"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyW) {
+		a := "w"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyX) {
+		a := "x"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyY) {
+		a := "y"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyZ) {
+		a := "z"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyMinus) { // - 减号
+		a := "-"
+		pReg.AppendName(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyPeriod) { // “.” 键
+		a := "."
+		pReg.AppendName(a)
+		pReg.AppendIp(a)
+
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyTab) { // tab 键
 		pReg.InputFlag++
 		if pReg.InputFlag > InputFlagPort {
 			pReg.InputFlag = InputFlagName
 		}
 
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyPeriod) { // “.” 按键
-		a := "."
-		pReg.AppendName(a)
-		pReg.AppendIp(a)
-
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) {
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyBackspace) { // Backspace 键
 		pReg.Subtract()
 
-	} else if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+	} else if inpututil.IsKeyJustPressed(ebiten.KeyEnter) { // Enter 键
 		pReg.SendRegDgPkt()
 	}
 
