@@ -58,16 +58,23 @@ type Graphics interface {
 	// id
 	GetId() string
 
+	// 获取图像类型
+	GetGraphicsTy() GraphicsTy
+
+	// 获取位置
+	GetLocation() Location
+
 	// 状态
 	GetStatus() Status
 
 	// 生命值
 	GetHp() uint8
 
+	// 获取图片
+	GetImage() *ebiten.Image
+
 	// 绘制
 	Draw(screen *ebiten.Image) error
-
-	GetAbsGraphics() *AbsGraphics
 }
 
 // 图形
@@ -106,12 +113,24 @@ func (pAbsGraphics *AbsGraphics) GetId() string {
 	return pAbsGraphics.Id
 }
 
+func (pAbsGraphics *AbsGraphics) GetGraphicsTy() GraphicsTy {
+	return pAbsGraphics.GraphicsTy
+}
+
+func (pAbsGraphics *AbsGraphics) GetLocation() Location {
+	return pAbsGraphics.Location
+}
+
 func (pAbsGraphics *AbsGraphics) GetStatus() Status {
 	return pAbsGraphics.Status
 }
 
 func (pAbsGraphics *AbsGraphics) GetHp() uint8 {
 	return pAbsGraphics.Hp
+}
+
+func (pAbsGraphics *AbsGraphics) GetImage() *ebiten.Image {
+	return pAbsGraphics.pImage
 }
 
 func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
@@ -169,8 +188,39 @@ func (pAbsGraphics *AbsGraphics) Move(direction Direction) {
 	pAbsGraphics.pImage = pImage
 }
 
+func (pAbsGraphics *AbsGraphics) callIntersect(x, y float64, otherGraphics Graphics) bool {
+	r := CallMethod(pAbsGraphics.sub, "Intersect", []reflect.Value{reflect.ValueOf(x), reflect.ValueOf(y), reflect.ValueOf(otherGraphics)})
+	if r != nil {
+		return r.(bool)
+	}
+
+	return pAbsGraphics.Intersect(x, y, otherGraphics)
+}
+
 // 判断图形是否相交
-func (pAbsGraphics *AbsGraphics) Intersect(x, y float64, pOtherAbsGraphics *AbsGraphics) bool {
+func (pAbsGraphics *AbsGraphics) Intersect(x, y float64, otherGraphics Graphics) bool {
+
+	// 当前主动校验的是tank时，不校验tank自身发射的子弹
+	if pAbsGraphics.GraphicsTy == GraphicsTyTank &&
+		otherGraphics.GetGraphicsTy() == GraphicsTyBullet &&
+		otherGraphics.(*Bullet).TankId == pAbsGraphics.Id {
+		return false
+	}
+
+	// 当前主动校验的是bullet时，不对tank有效
+	if pAbsGraphics.GraphicsTy == GraphicsTyBullet &&
+		otherGraphics.GetGraphicsTy() == GraphicsTyTank &&
+		otherGraphics.GetId() == reflect.ValueOf(pAbsGraphics.sub).Interface().(*Bullet).TankId {
+		return false
+	}
+
+	// 当前主动校验的是bullet时，不对tank发射的子弹集校验
+	if pAbsGraphics.GraphicsTy == GraphicsTyBullet &&
+		otherGraphics.GetGraphicsTy() == GraphicsTyBullet &&
+		reflect.ValueOf(otherGraphics).Interface().(*Bullet).TankId == reflect.ValueOf(pAbsGraphics.sub).Interface().(*Bullet).TankId {
+		return false
+	}
+
 	// 两个矩形相交机几种情况：images/rectangle_itersect.png
 	// 重心距离在X轴和Y轴都小于两矩形的长或宽的一半之和
 
@@ -178,19 +228,40 @@ func (pAbsGraphics *AbsGraphics) Intersect(x, y float64, pOtherAbsGraphics *AbsG
 	//centerX := pAbsGraphics.Location.X + float64(width/2)
 	//centerY := pAbsGraphics.Location.Y + float64(height/2)
 	centerX := x + float64(width/2)
+	if width%2 != 0 {
+		centerX += 1
+	}
 	centerY := y + float64(height/2)
+	if height%2 != 0 {
+		centerY += 1
+	}
 	//log.Printf("center x: %v, y: %v\n", centerX, centerY)
 
-	otherWidth, otherHeight := pOtherAbsGraphics.pImage.Size()
-	otherCenterX := pOtherAbsGraphics.Location.X + float64(otherWidth/2)
-	otherCenterY := pOtherAbsGraphics.Location.Y + float64(otherHeight/2)
+	otherWidth, otherHeight := otherGraphics.GetImage().Size()
+	otherCenterX := otherGraphics.GetLocation().X + float64(otherWidth/2)
+	if otherWidth%2 != 0 {
+		otherCenterX += 1
+	}
+	otherCenterY := otherGraphics.GetLocation().Y + float64(otherHeight/2)
+	if otherHeight%2 != 0 {
+		otherCenterY += 1
+	}
 	//log.Printf("otherCenter x: %v, y: %v\n", otherCenterX, otherCenterY)
 
 	centerWidth := math.Abs(centerX - otherCenterX)
 	centerHeight := math.Abs(centerY - otherCenterY)
 	//log.Printf("center width: %v, height: %v\n", centerWidth, centerHeight)
+	//log.Println()
 
-	if centerWidth <= float64((width+otherWidth)/2) && centerHeight <= float64((height+otherHeight)/2) {
+	_width := (width + otherWidth) / 2
+	if (width+otherWidth)%2 != 0 {
+		_width += 1
+	}
+	_height := (height + otherHeight) / 2
+	if (height+otherHeight)%2 != 0 {
+		_height += 1
+	}
+	if centerWidth <= float64(_width) && centerHeight <= float64(_height) {
 		return true
 	}
 
@@ -214,11 +285,18 @@ func (pAbsGraphics *AbsGraphics) IsOutOfBounds(x, y float64) bool {
 		return true
 	}
 
-	for _, value := range pApp.pGame.GraphicsMap {
+	// 阻塞获取 chanel 中的 map
+	graphicsMap := <-pApp.pGame.GraphicsMapChan
+
+	// 再将 map 添加到 channel
+	defer func() { pApp.pGame.GraphicsMapChan <- graphicsMap }()
+
+	for _, value := range graphicsMap {
 		if value.GetId() == pAbsGraphics.GetId() {
 			continue
 		}
-		if pAbsGraphics.Intersect(x, y, value.GetAbsGraphics()) {
+
+		if pAbsGraphics.callIntersect(x, y, value) {
 			return true
 		}
 	}

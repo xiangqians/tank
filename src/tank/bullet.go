@@ -16,7 +16,7 @@ var bulletLock sync.Mutex
 
 type Bullet struct {
 	*AbsGraphics
-	tankId string // 子弹所属坦克id
+	TankId string // 子弹所属坦克id
 }
 
 func CreateBullet(pTank *Tank, speed Speed) *Bullet {
@@ -39,10 +39,37 @@ func CreateBullet(pTank *Tank, speed Speed) *Bullet {
 
 	pBullet := &Bullet{
 		AbsGraphics: CreateAbsGraphics(GraphicsTyBullet, location, pTank.Direction, speed),
-		tankId:      pTank.Id,
+		TankId:      pTank.Id,
 	}
 	pBullet.Init(pBullet)
 	return pBullet
+}
+
+func (pBullet *Bullet) Intersect(x, y float64, otherGraphics Graphics) bool {
+	r := pBullet.AbsGraphics.Intersect(x, y, otherGraphics)
+	if !r {
+		return r
+	}
+
+	// 子弹打中子弹，则双方子弹抵消
+	if otherGraphics.GetGraphicsTy() == GraphicsTyBullet {
+		pBullet.Status = StatusTerm
+	} else
+	// 子弹打中坦克
+	if otherGraphics.GetGraphicsTy() == GraphicsTyTank {
+		pTank := otherGraphics.(*Tank)
+		if pTank.Status != StatusTerm {
+			pTank.Hp--
+		}
+
+		if pTank.Hp <= 0 {
+			pTank.Status = StatusTerm
+		}
+
+		pApp.pEndpoint.SendGraphics(otherGraphics)
+	}
+
+	return r
 }
 
 func (pBullet *Bullet) IsOutOfBounds(x, y float64) bool {
@@ -60,8 +87,8 @@ func (pBullet *Bullet) Draw(screen *ebiten.Image) error {
 		return err
 	}
 
-	if pBullet.tankId == pApp.pGame.pTank.Id && pBullet.Status == StatusNew {
-	}
+	//if pBullet.TankId == pApp.pGame.pTank.Id && pBullet.Status == StatusNew {
+	//}
 
 	return nil
 }
@@ -73,12 +100,12 @@ func (pBullet *Bullet) Run() {
 	}
 
 	for {
+		pBullet.Move(pBullet.Direction)
+		pApp.pEndpoint.SendGraphics(pBullet)
+
 		if pBullet.Status != StatusRun {
 			break
 		}
-
-		pBullet.Move(pBullet.Direction)
-		pApp.pEndpoint.SendGraphics(pBullet)
 
 		switch pBullet.Speed {
 		case SpeedSlow:

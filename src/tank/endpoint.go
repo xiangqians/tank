@@ -149,18 +149,8 @@ func (pEndpoint *Endpoint) receiveDataDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
 	pAbsGraphics := &AbsGraphics{}
 	err := Deserialize(pDgPkt.Data, pAbsGraphics)
 	if err == nil {
-		log.Printf("addr: %v, graphics: %v\n", pAddr.String(), pAbsGraphics)
-		switch pAbsGraphics.GraphicsTy {
-		case GraphicsTyTank:
-			pTank := &Tank{AbsGraphics: pAbsGraphics}
-			pTank.Init(pTank)
-			pApp.pGame.AddGraphics(pTank)
-
-		case GraphicsTyBullet:
-			pBullet := &Bullet{AbsGraphics: pAbsGraphics}
-			pBullet.Init(pBullet)
-			pApp.pGame.AddGraphics(pBullet)
-		}
+		//log.Printf("addr: %v, graphics: %v\n", pAddr.String(), pAbsGraphics)
+		pApp.pGame.AddAbsGraphics(pAbsGraphics)
 	}
 }
 
