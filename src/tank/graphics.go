@@ -69,6 +69,9 @@ type Graphics interface {
 	// id
 	GetId() string
 
+	// name
+	GetName() string
+
 	// 获取图像类型
 	GetGraphicsTy() GraphicsTy
 
@@ -91,6 +94,7 @@ type Graphics interface {
 // 图形
 type AbsGraphics struct {
 	Id         string        `json:"id"`         // id
+	Name       string        `json:"name"`       // 名称
 	GraphicsTy GraphicsTy    `json:"graphicsTy"` // 图像类型
 	Location   Location      `json:"location"`   // 位置
 	Direction  Direction     `json:"direction"`  // 方向
@@ -101,15 +105,16 @@ type AbsGraphics struct {
 	sub        interface{}   // 子类
 }
 
-func CreateAbsGraphics(graphicsTy GraphicsTy, location Location, direction Direction, speed Speed) *AbsGraphics {
+func CreateAbsGraphics(name string, graphicsTy GraphicsTy, location Location, direction Direction, speed Speed) *AbsGraphics {
 	return &AbsGraphics{
 		Id:         Uuid(),
+		Name:       name,
 		GraphicsTy: graphicsTy,
 		Location:   location,
 		Direction:  direction,
 		Speed:      speed,
 		Status:     StatusNew,
-		Hp:         100,
+		Hp:         32,
 		pImage:     nil,
 		sub:        nil,
 	}
@@ -122,6 +127,10 @@ func (pAbsGraphics *AbsGraphics) Init(sub interface{}) {
 
 func (pAbsGraphics *AbsGraphics) GetId() string {
 	return pAbsGraphics.Id
+}
+
+func (pAbsGraphics *AbsGraphics) GetName() string {
+	return pAbsGraphics.Name
 }
 
 func (pAbsGraphics *AbsGraphics) GetGraphicsTy() GraphicsTy {
@@ -158,20 +167,21 @@ func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
 	if err == nil {
 		// 绘制坦克元数据
 		if pAbsGraphics.GraphicsTy == GraphicsTyTank {
-			textX := int(location.X)
-			textY := int(location.Y)
+			nameX, hpX := int(location.X), int(location.X)
+			nameY, hpY := int(location.Y), int(location.Y)
 			switch pAbsGraphics.Direction {
 			case DirectionUp:
 				_, height := pAbsGraphics.pImage.Size()
-				textY += height + 10
-			case DirectionDown:
-				textY -= 8
-			case DirectionLeft:
-				textY -= 8
-			case DirectionRight:
-				textY -= 8
+				nameY += height + 10
+				hpY = nameY
+				hpY += 10
+			case DirectionDown, DirectionLeft, DirectionRight:
+				hpY -= 8
+				nameY = hpY
+				nameY -= 10
 			}
-			text.Draw(screen, fmt.Sprintf("HP: %v", pAbsGraphics.GetHp()), tankMdFont, textX, textY, color.White)
+			text.Draw(screen, fmt.Sprintf("%v", pAbsGraphics.GetName()), tankMdFont, nameX, nameY, color.White)
+			text.Draw(screen, fmt.Sprintf("HP: %v", pAbsGraphics.GetHp()), tankMdFont, hpX, hpY, color.White)
 		}
 	}
 

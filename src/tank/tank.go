@@ -14,7 +14,7 @@ type Tank struct {
 }
 
 func CreateTank(location Location, direction Direction, speed Speed) *Tank {
-	pTank := &Tank{AbsGraphics: CreateAbsGraphics(GraphicsTyTank, location, direction, speed)}
+	pTank := &Tank{AbsGraphics: CreateAbsGraphics("3rwdc2335cv", GraphicsTyTank, location, direction, speed)}
 	pTank.Init(pTank)
 	return pTank
 }

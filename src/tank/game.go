@@ -160,7 +160,7 @@ func (pGame *Game) Update(screen *ebiten.Image) error {
 }
 
 func (pGame *Game) Draw(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("localAddr %v\nHP: %v", pApp.pReg.LocalAddr, pGame.pTank.GetHp()))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("LocalAddr: %v\nName     : %v\nHP       : %v", pApp.pReg.LocalAddr, pGame.pTank.GetName(), pGame.pTank.GetHp()))
 
 	select {
 	// 非阻塞获取 chanel 中的 map

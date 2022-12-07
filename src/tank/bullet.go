@@ -38,7 +38,7 @@ func CreateBullet(pTank *Tank, speed Speed) *Bullet {
 	//log.Printf("location = %v\n", location)
 
 	pBullet := &Bullet{
-		AbsGraphics: CreateAbsGraphics(GraphicsTyBullet, location, pTank.Direction, speed),
+		AbsGraphics: CreateAbsGraphics("", GraphicsTyBullet, location, pTank.Direction, speed),
 		TankId:      pTank.Id,
 	}
 	pBullet.Init(pBullet)
