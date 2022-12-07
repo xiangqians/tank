@@ -33,7 +33,7 @@ const (
 
 // 速度
 const (
-	SpeedSlow Speed = iota * 2
+	SpeedSlow Speed = (iota + 1) * 2
 	SpeedNormal
 	SpeedFast
 )
