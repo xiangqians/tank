@@ -176,8 +176,8 @@ func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
 	op.GeoM.Translate(location.X, location.Y)
 	err := screen.DrawImage(pAbsGraphics.pImage, op)
 
-	if err == nil {
-		// 绘制坦克元数据
+	// 绘制坦克元数据（除了当前坦克外）
+	if err == nil && pAbsGraphics.Id != pApp.pGame.pTank.Id {
 		if pAbsGraphics.GraphicsTy == GraphicsTyTank {
 			nameX, hpX := int(location.X), int(location.X)
 			nameY, hpY := int(location.Y), int(location.Y)
