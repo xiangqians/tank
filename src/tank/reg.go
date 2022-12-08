@@ -157,6 +157,10 @@ func (pReg *Reg) SendRegDgPkt() {
 	if len(pReg.Port) > 0 && len(ip) > 0 && len(ipArr) == 4 {
 		pDgPkt := &DgPkt{}
 		pDgPkt.DgPktTy = DgPktTyReg
+		buf, err := Serialize(pApp.pGame.pTank)
+		if err == nil {
+			pDgPkt.Data = buf
+		}
 
 		port, _ := strconv.ParseInt(pReg.Port, 10, 64)
 		a, _ := strconv.ParseInt(ipArr[0], 10, 64)

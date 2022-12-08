@@ -98,6 +98,14 @@ func (pEndpoint *Endpoint) receiveRegDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
 	// 添加到 本地&远程端点udp地址集切片
 	pEndpoint.pAddrs = append(pEndpoint.pAddrs, pAddr)
 
+	// 将注册者坦克信息添加到图形集
+	pAbsGraphics := &AbsGraphics{}
+	err := Deserialize(pDgPkt.Data, pAbsGraphics)
+	if err == nil {
+		pApp.pGame.AddAbsGraphics(pAbsGraphics)
+	}
+	//log.Printf("reg AbsGraphics: %v\n", *pAbsGraphics)
+
 	// SendDiscovDgPktToAddrs
 	pDgPkt.DgPktTy = DgPktTyDiscov
 	var addrsStr string
@@ -107,6 +115,17 @@ func (pEndpoint *Endpoint) receiveRegDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
 	pDgPkt.Data = []byte(addrsStr)
 	log.Printf("SendDiscovDgPktToAddrs: %v\n", addrsStr)
 	pEndpoint.SendDgPktToAddrs(pDgPkt)
+
+	// 阻塞获取 chanel 中的 map
+	graphicsMap := <-pApp.pGame.GraphicsMapChan
+
+	// 再将 map 添加到 channel
+	defer func() { pApp.pGame.GraphicsMapChan <- graphicsMap }()
+
+	// 发送当前图形集给注册者
+	for _, graphics := range graphicsMap {
+		pEndpoint.SendGraphics(graphics, pAddr)
+	}
 }
 
 // 接收到发现数据包
@@ -154,7 +173,7 @@ func (pEndpoint *Endpoint) receiveDataDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
 	}
 }
 
-func (pEndpoint *Endpoint) SendGraphics(graphics Graphics) {
+func (pEndpoint *Endpoint) SendGraphicsToAddrs(graphics Graphics) {
 	buf, err := Serialize(graphics)
 	if err != nil {
 		return
@@ -164,6 +183,18 @@ func (pEndpoint *Endpoint) SendGraphics(graphics Graphics) {
 	pDgPkt.DgPktTy = DgPktTyData
 	pDgPkt.Data = buf
 	pEndpoint.SendDgPktToAddrs(pDgPkt)
+}
+
+func (pEndpoint *Endpoint) SendGraphics(graphics Graphics, addr *net.UDPAddr) {
+	buf, err := Serialize(graphics)
+	if err != nil {
+		return
+	}
+
+	pDgPkt := &DgPkt{}
+	pDgPkt.DgPktTy = DgPktTyData
+	pDgPkt.Data = buf
+	pEndpoint.SendDgPkt(pDgPkt, addr)
 }
 
 func (pEndpoint *Endpoint) SendDgPktToAddrs(pDgPkt *DgPkt) {

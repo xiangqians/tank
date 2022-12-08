@@ -66,7 +66,7 @@ func (pBullet *Bullet) Intersect(x, y float64, otherGraphics Graphics) bool {
 			pTank.Status = StatusTerm
 		}
 
-		pApp.pEndpoint.SendGraphics(otherGraphics)
+		pApp.pEndpoint.SendGraphicsToAddrs(otherGraphics)
 	}
 
 	return r
@@ -101,7 +101,7 @@ func (pBullet *Bullet) Run() {
 
 	for {
 		pBullet.Move(pBullet.Direction)
-		pApp.pEndpoint.SendGraphics(pBullet)
+		pApp.pEndpoint.SendGraphicsToAddrs(pBullet)
 
 		if pBullet.Status != StatusRun {
 			break

@@ -28,7 +28,7 @@ func (pTank *Tank) Fire() {
 
 func (pTank *Tank) Move(direction Direction) {
 	pTank.AbsGraphics.Move(direction)
-	pApp.pEndpoint.SendGraphics(pTank)
+	pApp.pEndpoint.SendGraphicsToAddrs(pTank)
 }
 
 func (pTank *Tank) UpImage() *ebiten.Image {
