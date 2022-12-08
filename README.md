@@ -33,6 +33,7 @@ $ go run main.go
 ## 游戏界面
 
 ![注册界面](https://github.com/xiangqians/tank-go/raw/master/doc/img/reg.png)
+![游戏界面](https://github.com/xiangqians/tank-go/raw/master/doc/img/game.png)
 
 ## 操作指南
 
