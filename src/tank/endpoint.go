@@ -98,11 +98,15 @@ func (pEndpoint *Endpoint) receiveRegDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
 	// 添加到 本地&远程端点udp地址集切片
 	pEndpoint.pAddrs = append(pEndpoint.pAddrs, pAddr)
 
-	// 将注册者坦克信息添加到图形集
+	// 反序列注册者坦克信息
 	pAbsGraphics := &AbsGraphics{}
 	err := Deserialize(pDgPkt.Data, pAbsGraphics)
 	if err == nil {
+		// 将注册者坦克信息添加到图形集
 		pApp.pGame.AddAbsGraphics(pAbsGraphics)
+
+		// 让所有端都发现新上线坦克
+		pEndpoint.SendGraphicsToAddrs(pAbsGraphics)
 	}
 	//log.Printf("reg AbsGraphics: %v\n", *pAbsGraphics)
 
