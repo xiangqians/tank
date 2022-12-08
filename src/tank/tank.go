@@ -19,6 +19,19 @@ func CreateTank(location Location, direction Direction, speed Speed) *Tank {
 	return pTank
 }
 
+func CreateDefaultTank() *Tank {
+	x, y := RandXY()
+	return CreateTank(Location{float64(x), float64(y)}, DirectionRight, DefaultTankSpeed)
+}
+
+// 重置（恢复）坦克
+func (pTank *Tank) Reset() {
+	pTank.Hp = DefaultHp
+	x, y := RandXY()
+	pTank.Location = Location{float64(x), float64(y)}
+	pTank.Status = StatusRun
+}
+
 // 开火
 func (pTank *Tank) Fire() {
 	pBullet := CreateBullet(pTank, DefaultBulletSpeed)

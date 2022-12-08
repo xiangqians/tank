@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/hajimehoshi/ebiten/inpututil"
-	"math/rand"
 	"time"
 )
 
@@ -30,16 +29,7 @@ func (pGame *Game) Init() {
 	pGame.GraphicsMapChan <- pGame.GraphicsMap
 
 	// TANK
-	rand.Seed(time.Now().UnixNano())
-	x := rand.Intn(screenWidth)
-	if x+30 > screenWidth {
-		x -= 30
-	}
-	y := rand.Intn(screenHeight)
-	if y+30 > screenHeight {
-		y -= 30
-	}
-	pGame.pTank = CreateTank(Location{float64(x), float64(y)}, DirectionRight, DefaultTankSpeed)
+	pGame.pTank = CreateDefaultTank()
 	pGame.AddGraphics(pGame.pTank)
 
 	// test
@@ -139,6 +129,11 @@ func (pGame *Game) DelGraphics(graphics Graphics) {
 
 func (pGame *Game) Update(screen *ebiten.Image) error {
 	if pGame.pTank.Status == StatusTerm {
+		if inpututil.IsKeyJustPressed(ebiten.KeyEnter) {
+			pGame.pTank.Reset()
+			pGame.AddGraphics(pGame.pTank)
+			pApp.pEndpoint.SendGraphicsToAddrs(pGame.pTank)
+		}
 		return nil
 	}
 

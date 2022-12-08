@@ -23,6 +23,8 @@ type (
 	GraphicsTy int8 // 图像类型
 )
 
+const DefaultHp uint8 = 32
+
 // 方向
 const (
 	DirectionUp Direction = iota + 1
@@ -126,7 +128,7 @@ func CreateAbsGraphics(name string, graphicsTy GraphicsTy, location Location, di
 		Direction:  direction,
 		Speed:      speed,
 		Status:     StatusNew,
-		Hp:         32,
+		Hp:         DefaultHp,
 		pImage:     nil,
 		sub:        nil,
 	}

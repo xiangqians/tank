@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"io"
 	"log"
+	"math/rand"
 	"os"
 	"time"
 )
@@ -112,6 +113,19 @@ func (pApp *App) Draw(screen *ebiten.Image) {
 
 func (pApp *App) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
+}
+
+func RandXY() (int, int) {
+	rand.Seed(time.Now().UnixNano())
+	x := rand.Intn(screenWidth)
+	if x+30 > screenWidth {
+		x -= 30
+	}
+	y := rand.Intn(screenHeight)
+	if y+30 > screenHeight {
+		y -= 30
+	}
+	return x, y
 }
 
 func Run() {

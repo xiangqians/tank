@@ -39,6 +39,7 @@ $ go run main.go
 - Tab键
 - 方向键控制坦克移动
 - 空格键发射子弹
+- Enter键继续
 
 # pkg/mod
 
