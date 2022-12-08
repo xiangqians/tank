@@ -34,6 +34,11 @@ $ go run main.go
 
 ![注册界面](https://github.com/xiangqians/tank-go/raw/master/doc/img/reg.png)
 
+## 操作指南
+
+- 方向键控制坦克移动
+- 空格键发射子弹
+
 # pkg/mod
 
 ## ebiten
@@ -45,3 +50,4 @@ $ go run main.go
 ## uuid
 
 [GitHub](https://github.com/google/uuid)
+
