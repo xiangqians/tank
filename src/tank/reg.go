@@ -142,6 +142,11 @@ func (pReg *Reg) Subtract() {
 }
 
 func (pReg *Reg) SendRegDgPkt() {
+	if pReg.Name == "" {
+		pReg.InputFlag = InputFlagName
+		return
+	}
+
 	pApp.pGame.pTank.Name = pReg.Name
 
 	ip := pReg.Ip
@@ -386,6 +391,13 @@ func (pReg *Reg) Draw(screen *ebiten.Image) {
 		color.White)
 
 	y += 100
+	text.Draw(screen,
+		"Reg",
+		pReg.ArcadeFont,
+		x, y,
+		color.White)
+
+	y += 50
 	ipY := y
 	ipText := fmt.Sprintf("IP  : %v", pReg.Ip)
 	text.Draw(screen,
