@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/hajimehoshi/ebiten/inpututil"
+	"math/rand"
 	"time"
 )
 
@@ -29,7 +30,16 @@ func (pGame *Game) Init() {
 	pGame.GraphicsMapChan <- pGame.GraphicsMap
 
 	// TANK
-	pGame.pTank = CreateTank(Location{300, 100}, DirectionRight, DefaultTankSpeed)
+	rand.Seed(time.Now().UnixNano())
+	x := rand.Intn(screenWidth)
+	if x+30 > screenWidth {
+		x -= 30
+	}
+	y := rand.Intn(screenHeight)
+	if y+30 > screenHeight {
+		y -= 30
+	}
+	pGame.pTank = CreateTank(Location{float64(x), float64(y)}, DirectionRight, DefaultTankSpeed)
 	pGame.AddGraphics(pGame.pTank)
 
 	// test
