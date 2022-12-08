@@ -36,10 +36,10 @@ $ go run main.go
 
 ## 操作指南
 
-- Tab键
+- Tab键切换光标位置
 - 方向键控制坦克移动
 - 空格键发射子弹
-- Enter键继续
+- Enter键继续游戏
 
 # pkg/mod
 
