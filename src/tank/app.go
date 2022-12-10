@@ -8,7 +8,6 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"io"
 	"log"
-	"math/rand"
 	"os"
 	"time"
 )
@@ -116,12 +115,11 @@ func (pApp *App) Layout(outsideWidth, outsideHeight int) (int, int) {
 }
 
 func RandXY() (int, int) {
-	rand.Seed(time.Now().UnixNano())
-	x := rand.Intn(screenWidth)
+	x := RandIntn(screenWidth)
 	if x+30 > screenWidth {
 		x -= 30
 	}
-	y := rand.Intn(screenHeight)
+	y := RandIntn(screenHeight)
 	if y+30 > screenHeight {
 		y -= 30
 	}

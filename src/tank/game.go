@@ -15,6 +15,7 @@ type Game struct {
 	GraphicsMap     map[string]Graphics      // 图形Map
 	GraphicsMapChan chan map[string]Graphics // 图形Map channel
 	pTank           *Tank                    // 当前用户坦克
+	EquipCount      uint8                    // 装备数量
 }
 
 // 坦克默认速度
@@ -34,12 +35,9 @@ func (pGame *Game) Init() {
 
 	// test
 	//pGame.AddGraphics(CreateEquip())
-	go func() {
-		for {
-			pGame.AddGraphics(CreateEquip())
-			time.Sleep(2 * time.Second)
-		}
-	}()
+
+	// 装配生成器
+	go EquipGenerator()
 
 	// 清理
 	go func() {
@@ -94,6 +92,12 @@ func (pGame *Game) AddAbsGraphics(pAbsGraphics *AbsGraphics) {
 		pBullet.Timestamp = time.Now().UnixNano()
 		pBullet.Init(pBullet)
 		graphics = pBullet
+
+	case GraphicsTyEquip:
+		pEquip := &Equip{AbsGraphics: pAbsGraphics}
+		pEquip.Timestamp = time.Now().UnixNano()
+		pEquip.Init(pEquip)
+		graphics = pEquip
 	}
 
 	if graphics == nil {
@@ -186,12 +190,17 @@ func (pGame *Game) Draw(screen *ebiten.Image) {
 	case graphicsMap := <-pGame.GraphicsMapChan:
 		// 再将 map 添加到 channel
 		defer func() { pGame.GraphicsMapChan <- graphicsMap }()
+		var equipCount uint8 = 0
 		for _, graphics := range graphicsMap {
 			graphics.VerifyTimestamp()
 			if graphics.GetStatus() != StatusTerm {
+				if graphics.GetGraphicsTy() == GraphicsTyEquip {
+					equipCount++
+				}
 				graphics.Draw(screen)
 			}
 		}
+		pGame.EquipCount = equipCount
 	default:
 	}
 }

@@ -10,7 +10,9 @@ import (
 	"github.com/hajimehoshi/ebiten/examples/resources/fonts"
 	"golang.org/x/image/font"
 	"log"
+	"math/rand"
 	"reflect"
+	"time"
 )
 
 func Uuid() string {
@@ -70,4 +72,9 @@ func CreateFontFace(size, dpi float64) font.Face {
 		DPI:     dpi,
 		Hinting: font.HintingFull,
 	})
+}
+
+func RandIntn(n int) int {
+	rand.Seed(time.Now().UnixNano())
+	return rand.Intn(n)
 }

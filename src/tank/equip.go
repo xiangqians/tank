@@ -3,7 +3,10 @@
 // @date 23:10 2022/12/10
 package tank
 
-import "github.com/hajimehoshi/ebiten"
+import (
+	"github.com/hajimehoshi/ebiten"
+	"time"
+)
 
 // 装备类型
 type EquipType int8
@@ -17,6 +20,9 @@ const (
 	EquipTypeHpDec                          // HP减少
 	EquipTypeTankInvis                      // 坦克隐形
 )
+
+// 装备最大数量
+const MaxEquipCount uint8 = 5
 
 type Equip struct {
 	*AbsGraphics
@@ -35,6 +41,21 @@ func CreateEquip() *Equip {
 
 func RandEquipType() EquipType {
 	return EquipTypeBulletAcc
+}
+
+func EquipGenerator() {
+	time.Sleep(10 * time.Second)
+	for {
+		time.Sleep(time.Duration(RandIntn(60)) * time.Second)
+		if pApp.pGame.EquipCount < MaxEquipCount {
+			pEquip := CreateEquip()
+
+			// 通知其它端点
+			pApp.pEndpoint.SendGraphicsToAddrs(pEquip)
+
+			pApp.pGame.AddGraphics(pEquip)
+		}
+	}
 }
 
 func (pEquip *Equip) Intersect(x, y float64, otherGraphics Graphics) bool {
