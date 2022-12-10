@@ -51,6 +51,7 @@ const (
 const (
 	GraphicsTyTank GraphicsTy = iota + 1
 	GraphicsTyBullet
+	GraphicsTyEquip
 )
 
 // 位置信息
@@ -324,6 +325,12 @@ func (pAbsGraphics *AbsGraphics) Intersect(x, y float64, otherGraphics Graphics)
 		return false
 	}
 
+	// 当前主动校验的是bullet时，不校验equip是否相交
+	if pAbsGraphics.GraphicsTy == GraphicsTyBullet &&
+		otherGraphics.GetGraphicsTy() == GraphicsTyEquip {
+		return false
+	}
+
 	// 当前主动校验的是bullet时，不对tank发射的子弹集校验
 	if pAbsGraphics.GraphicsTy == GraphicsTyBullet &&
 		otherGraphics.GetGraphicsTy() == GraphicsTyBullet &&
@@ -371,11 +378,26 @@ func (pAbsGraphics *AbsGraphics) Intersect(x, y float64, otherGraphics Graphics)
 	if (height+otherHeight)%2 != 0 {
 		_height += 1
 	}
+
+	r := false
 	if centerWidth <= float64(_width) && centerHeight <= float64(_height) {
-		return true
+		r = true
 	}
 
-	return false
+	// 图形相交 & 当前主动校验的是tank，并且是当前端点的tank时，当前坦克捡起装备
+	if r &&
+		pAbsGraphics.GraphicsTy == GraphicsTyTank &&
+		pAbsGraphics.Id == pApp.pGame.pTank.Id &&
+		otherGraphics.GetGraphicsTy() == GraphicsTyEquip {
+		otherGraphics.(*Equip).Status = StatusTerm
+
+		// 通知其它端点
+		pApp.pEndpoint.SendGraphicsToAddrs(otherGraphics)
+
+		return false
+	}
+
+	return r
 }
 
 func (pAbsGraphics *AbsGraphics) callIsOutOfBounds(x, y float64) bool {

@@ -39,7 +39,7 @@ type Reg struct {
 func (pReg *Reg) Init() {
 	pReg.ArcadeFont = CreateFontFace(16, 72)
 	pReg.TitleFont = CreateFontFace(64, 72)
-	pReg.InputFlag = InputFlagName
+	pReg.InputFlag = InputFlagIp
 
 	go func() {
 		for pApp.appStep == AppStepReg {

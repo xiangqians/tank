@@ -33,7 +33,13 @@ func (pGame *Game) Init() {
 	pGame.AddGraphics(pGame.pTank)
 
 	// test
-	//pGame.AddGraphics(CreateTank(Location{400, 200}, DirectionRight, SpeedNormal))
+	//pGame.AddGraphics(CreateEquip())
+	go func() {
+		for {
+			pGame.AddGraphics(CreateEquip())
+			time.Sleep(2 * time.Second)
+		}
+	}()
 
 	// 清理
 	go func() {
