@@ -13,6 +13,7 @@ import (
 	"image/color"
 	"math"
 	"reflect"
+	"time"
 )
 
 // type
@@ -98,6 +99,12 @@ type Graphics interface {
 	// 生命值
 	GetHp() uint8
 
+	// 时间戳
+	GetTimestamp() int64
+
+	// 校验时间戳是否有效
+	VerifyTimestamp() bool
+
 	// 获取图片
 	GetImage() *ebiten.Image
 
@@ -115,6 +122,7 @@ type AbsGraphics struct {
 	Speed      Speed         `json:"speed"`      // 速度
 	Status     Status        `json:"status"`     // 状态
 	Hp         uint8         `json:"hp"`         // 生命值
+	Timestamp  int64         `json:"timestamp"`  // 时间戳
 	pImage     *ebiten.Image // 图片
 	sub        interface{}   // 子类
 }
@@ -129,6 +137,7 @@ func CreateAbsGraphics(name string, graphicsTy GraphicsTy, location Location, di
 		Speed:      speed,
 		Status:     StatusNew,
 		Hp:         DefaultHp,
+		Timestamp:  time.Now().UnixNano(),
 		pImage:     nil,
 		sub:        nil,
 	}
@@ -163,6 +172,37 @@ func (pAbsGraphics *AbsGraphics) GetHp() uint8 {
 	return pAbsGraphics.Hp
 }
 
+func (pAbsGraphics *AbsGraphics) GetTimestamp() int64 {
+	return pAbsGraphics.Timestamp
+}
+
+func (pAbsGraphics *AbsGraphics) VerifyTimestamp() bool {
+	// 不对终止图形校验
+	if pAbsGraphics.Status == StatusTerm {
+		return false
+	}
+
+	// 只校验子弹
+	if pAbsGraphics.GraphicsTy != GraphicsTyBullet {
+		return true
+	}
+
+	pBullet := reflect.ValueOf(pAbsGraphics.sub).Interface().(*Bullet)
+
+	// 不校验属于当前坦克所发射出的子弹
+	if pBullet.TankId == pApp.pGame.pTank.Id {
+		return true
+	}
+
+	// 不属于当前坦克所发射出的子弹超时（2s）未动则视为终止
+	if time.Now().UnixNano()-pBullet.Timestamp > 2*int64(time.Second) {
+		pBullet.Status = StatusTerm
+		return false
+	}
+
+	return true
+}
+
 func (pAbsGraphics *AbsGraphics) GetImage() *ebiten.Image {
 	return pAbsGraphics.pImage
 }
@@ -172,31 +212,31 @@ func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
 		return errors.New(fmt.Sprintf("the %v has been terminated", pAbsGraphics.Id))
 	}
 
-	// 绘制坦克
+	// 绘制图形
 	op := &ebiten.DrawImageOptions{}
 	location := pAbsGraphics.Location
 	op.GeoM.Translate(location.X, location.Y)
 	err := screen.DrawImage(pAbsGraphics.pImage, op)
 
 	// 绘制坦克元数据（除了当前坦克外）
-	if err == nil && pAbsGraphics.Id != pApp.pGame.pTank.Id {
-		if pAbsGraphics.GraphicsTy == GraphicsTyTank {
-			nameX, hpX := int(location.X), int(location.X)
-			nameY, hpY := int(location.Y), int(location.Y)
-			switch pAbsGraphics.Direction {
-			case DirectionUp:
-				_, height := pAbsGraphics.pImage.Size()
-				nameY += height + 10
-				hpY = nameY
-				hpY += 10
-			case DirectionDown, DirectionLeft, DirectionRight:
-				hpY -= 8
-				nameY = hpY
-				nameY -= 10
-			}
-			text.Draw(screen, fmt.Sprintf("%v", pAbsGraphics.GetName()), tankMdFont, nameX, nameY, color.White)
-			text.Draw(screen, fmt.Sprintf("HP: %v", pAbsGraphics.GetHp()), tankMdFont, hpX, hpY, color.White)
+	if err == nil &&
+		pAbsGraphics.Id != pApp.pGame.pTank.Id &&
+		pAbsGraphics.GraphicsTy == GraphicsTyTank {
+		nameX, hpX := int(location.X), int(location.X)
+		nameY, hpY := int(location.Y), int(location.Y)
+		switch pAbsGraphics.Direction {
+		case DirectionUp:
+			_, height := pAbsGraphics.pImage.Size()
+			nameY += height + 10
+			hpY = nameY
+			hpY += 10
+		case DirectionDown, DirectionLeft, DirectionRight:
+			hpY -= 8
+			nameY = hpY
+			nameY -= 10
 		}
+		text.Draw(screen, fmt.Sprintf("%v", pAbsGraphics.GetName()), tankMdFont, nameX, nameY, color.White)
+		text.Draw(screen, fmt.Sprintf("HP: %v", pAbsGraphics.GetHp()), tankMdFont, hpX, hpY, color.White)
 	}
 
 	return err

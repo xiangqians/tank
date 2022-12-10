@@ -21,7 +21,7 @@ type Game struct {
 var DefaultTankSpeed = SpeedNormal
 
 // 子弹默认速度
-var DefaultBulletSpeed = SpeedNormal
+var DefaultBulletSpeed = SpeedSlow
 
 func (pGame *Game) Init() {
 	pGame.GraphicsMap = make(map[string]Graphics, 8)
@@ -79,11 +79,13 @@ func (pGame *Game) AddAbsGraphics(pAbsGraphics *AbsGraphics) {
 	switch pAbsGraphics.GraphicsTy {
 	case GraphicsTyTank:
 		pTank := &Tank{AbsGraphics: pAbsGraphics}
+		pTank.Timestamp = time.Now().UnixNano()
 		pTank.Init(pTank)
 		graphics = pTank
 
 	case GraphicsTyBullet:
 		pBullet := &Bullet{AbsGraphics: pAbsGraphics}
+		pBullet.Timestamp = time.Now().UnixNano()
 		pBullet.Init(pBullet)
 		graphics = pBullet
 	}
@@ -179,6 +181,7 @@ func (pGame *Game) Draw(screen *ebiten.Image) {
 		// 再将 map 添加到 channel
 		defer func() { pGame.GraphicsMapChan <- graphicsMap }()
 		for _, graphics := range graphicsMap {
+			graphics.VerifyTimestamp()
 			if graphics.GetStatus() != StatusTerm {
 				graphics.Draw(screen)
 			}
