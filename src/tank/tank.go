@@ -82,6 +82,10 @@ func (pTank *Tank) VerifyEquip() {
 
 // 佩戴装备
 func (pTank *Tank) WearEquip(pEquip *Equip) {
+	if pEquip.Status == StatusTerm {
+		return
+	}
+
 	switch pEquip.EquipType {
 	// 坦克加速
 	case EquipTypeTankAcc:
@@ -94,6 +98,11 @@ func (pTank *Tank) WearEquip(pEquip *Equip) {
 		pTank.BulletAccEquipGetTimestamp = time.Now().UnixNano()
 		pTank.BulletSpeed = SpeedFast
 		log.Printf("WearEquip: BulletAcc\n")
+
+	// 生命值 +10
+	case EquipTypeHpInc:
+		pTank.Hp += 10
+		log.Printf("WearEquip: HpInc\n")
 
 	// 坦克隐形
 	case EquipTypeTankInvis:

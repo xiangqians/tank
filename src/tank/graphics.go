@@ -435,9 +435,8 @@ func (pAbsGraphics *AbsGraphics) Intersect(x, y float64, otherGraphics Graphics)
 		pAbsGraphics.GraphicsTy == GraphicsTyTank &&
 		pAbsGraphics.Id == pApp.pGame.pTank.Id &&
 		otherGraphics.GetGraphicsTy() == GraphicsTyEquip {
-		otherGraphics.(*Equip).Status = StatusTerm
-
 		pAbsGraphics.sub.(*Tank).WearEquip(otherGraphics.(*Equip))
+		otherGraphics.(*Equip).Status = StatusTerm
 
 		// 通知其它端点
 		pApp.pEndpoint.SendGraphicsToAddrs(otherGraphics)
