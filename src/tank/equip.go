@@ -21,8 +21,8 @@ const (
 	EquipTypeTankInvis                      // 坦克隐形
 )
 
-var equipTypeIndex int = 0
-var equipTypes []EquipType = []EquipType{EquipTypeTankAcc, EquipTypeBulletAcc}
+var equipTypeIndex = 0
+var equipTypes = []EquipType{EquipTypeTankAcc, EquipTypeBulletAcc, EquipTypeTankInvis}
 
 // 装备最大数量
 const MaxEquipCount uint8 = 10

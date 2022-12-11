@@ -14,14 +14,18 @@ import (
 type Tank struct {
 	*AbsGraphics
 	BulletSpeed Speed // 子弹速度
-	// 坦克装备之坦克加速
+	// 装备之坦克加速
 	TankAccEquipGetTimestamp  int64 // 拾起装备时间戳，单位，ns
 	TankAccEquipEffectiveTime uint8 // 拾起装备后有效时间，单位s
 
-	// 子弹装备之子弹加速
+	// 装备之子弹加速
 	BulletAccEquipGetTimestamp  int64 // 拾起装备时间戳，单位，ns
 	BulletAccEquipEffectiveTime uint8 // 拾起装备后有效时间，单位s
-	//pTankInvisEquip *Equip // 坦克隐形装备
+
+	// 装备之坦克隐形
+	TankInvisFlag               bool  // 坦克隐形标识
+	TankInvisEquipGetTimestamp  int64 // 拾起装备时间戳，单位，ns
+	TankInvisEquipEffectiveTime uint8 // 拾起装备后有效时间，单位s
 }
 
 func CreateDefaultTank() *Tank {
@@ -31,6 +35,7 @@ func CreateDefaultTank() *Tank {
 		BulletSpeed:                 DefaultBulletSpeed,
 		TankAccEquipEffectiveTime:   10,
 		BulletAccEquipEffectiveTime: 10,
+		TankInvisEquipEffectiveTime: 10,
 	}
 	pTank.Init()
 
@@ -50,7 +55,7 @@ func (pTank *Tank) Init() {
 
 // RemoveEquip
 func (pTank *Tank) VerifyEquip() {
-	// 坦克装备之坦克加速
+	// 装备之坦克加速
 	if pTank.Speed != DefaultTankSpeed && time.Now().UnixNano()-pTank.TankAccEquipGetTimestamp > int64(time.Duration(pTank.TankAccEquipEffectiveTime)*time.Second) {
 		pTank.Speed = DefaultTankSpeed
 
@@ -58,12 +63,20 @@ func (pTank *Tank) VerifyEquip() {
 		log.Printf("RemoveEquip: TankAcc\n")
 	}
 
-	// 子弹装备之子弹加速
+	// 装备之子弹加速
 	if pTank.BulletSpeed != DefaultBulletSpeed && time.Now().UnixNano()-pTank.BulletAccEquipGetTimestamp > int64(time.Duration(pTank.BulletAccEquipEffectiveTime)*time.Second) {
 		pTank.BulletSpeed = DefaultBulletSpeed
 
 		// 卸下装备
 		log.Printf("RemoveEquip: BulletAcc\n")
+	}
+
+	// 装备之坦克隐形
+	if pTank.TankInvisFlag && time.Now().UnixNano()-pTank.TankInvisEquipGetTimestamp > int64(time.Duration(pTank.TankInvisEquipEffectiveTime)*time.Second) {
+		pTank.TankInvisFlag = false
+
+		// 卸下装备
+		log.Printf("RemoveEquip: TankInvis\n")
 	}
 }
 
@@ -81,7 +94,14 @@ func (pTank *Tank) WearEquip(pEquip *Equip) {
 		pTank.BulletAccEquipGetTimestamp = time.Now().UnixNano()
 		pTank.BulletSpeed = SpeedFast
 		log.Printf("WearEquip: BulletAcc\n")
+
+	// 坦克隐形
+	case EquipTypeTankInvis:
+		pTank.TankInvisEquipGetTimestamp = time.Now().UnixNano()
+		pTank.TankInvisFlag = true
+		log.Printf("WearEquip: TankInvis\n")
 	}
+
 }
 
 // 重置（恢复）坦克

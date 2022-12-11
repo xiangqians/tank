@@ -219,16 +219,24 @@ func (pGame *Game) _Draw(screen *ebiten.Image) {
 		bs = fmt.Sprintf("%v -> %v (%v s)", bs, str, int64(pGame.pTank.BulletAccEquipEffectiveTime)-(time.Now().UnixNano()-pGame.pTank.BulletAccEquipGetTimestamp)/int64(time.Second))
 	}
 
+	// 坦克隐形描述
+	ti := fmt.Sprintf("%v", pGame.pTank.TankInvisFlag)
+	if pGame.pTank.TankInvisFlag {
+		ti = fmt.Sprintf("%v (%v s)", pGame.pTank.TankInvisFlag, int64(pGame.pTank.TankInvisEquipEffectiveTime)-(time.Now().UnixNano()-pGame.pTank.TankInvisEquipGetTimestamp)/int64(time.Second))
+	}
+
 	ebitenutil.DebugPrint(screen,
 		fmt.Sprintf(""+
 			"LocalAddr : %v\n"+
 			"Name      : %v\n"+
 			"TS        : %v\n"+
 			"BS        : %v\n"+
+			"TI        : %v\n"+
 			"HP        : %v\n",
 			pApp.pReg.LocalAddr,
 			pGame.pTank.GetName(),
 			ts,
 			bs,
+			ti,
 			pGame.pTank.GetHp()))
 }
