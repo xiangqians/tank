@@ -34,7 +34,7 @@ func (pGame *Game) Init() {
 	pGame.AddGraphics0(pGame.pTank)
 
 	// test
-	//pGame.AddGraphics(CreateEquip())
+	//pGame.AddGraphics0(CreateEquip())
 
 	// 装配生成器
 	go EquipGenerator()
@@ -160,6 +160,7 @@ func (pGame *Game) Draw(screen *ebiten.Image) {
 	pGame.Draw1(screen)
 }
 
+// 游戏界面闪烁解决了，但出现另一个问题：图形渲染变慢了。
 func (pGame *Game) Draw1(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("LocalAddr: %v\nName     : %v\nHP       : %v", pApp.pReg.LocalAddr, pGame.pTank.GetName(), pGame.pTank.GetHp()))
 
@@ -182,6 +183,7 @@ func (pGame *Game) Draw1(screen *ebiten.Image) {
 	pGame.EquipCount = equipCount
 }
 
+// 会出现游戏界面闪烁问题
 func (pGame *Game) Draw0(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("LocalAddr: %v\nName     : %v\nHP       : %v", pApp.pReg.LocalAddr, pGame.pTank.GetName(), pGame.pTank.GetHp()))
 

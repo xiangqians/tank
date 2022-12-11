@@ -125,13 +125,13 @@ func DeserializeBytesToGraphics(bytes []byte) Graphics {
 	case GraphicsTyTank:
 		pTank := &Tank{AbsGraphics: pAbsGraphics}
 		pTank.Timestamp = time.Now().UnixNano()
-		pTank.Init(pTank)
+		pTank.Init()
 		graphics = pTank
 
 	case GraphicsTyBullet:
 		pBullet := &Bullet{AbsGraphics: pAbsGraphics}
 		pBullet.Timestamp = time.Now().UnixNano()
-		pBullet.Init(pBullet)
+		pBullet.Init()
 		graphics = pBullet
 
 	case GraphicsTyEquip:
@@ -139,7 +139,7 @@ func DeserializeBytesToGraphics(bytes []byte) Graphics {
 		err := Deserialize(bytes, pEquip)
 		if err == nil {
 			pEquip.Timestamp = time.Now().UnixNano()
-			pEquip.Init(pEquip)
+			pEquip.Init()
 			graphics = pEquip
 		}
 	}
@@ -157,7 +157,7 @@ type AbsGraphics struct {
 	Speed      Speed         `json:"speed"`      // 速度
 	Status     Status        `json:"status"`     // 状态
 	Hp         uint8         `json:"hp"`         // 生命值
-	Timestamp  int64         `json:"timestamp"`  // 时间戳
+	Timestamp  int64         `json:"timestamp"`  // 时间戳，ns
 	pImage     *ebiten.Image // 图片
 	sub        interface{}   // 子类
 }
@@ -425,7 +425,7 @@ func (pAbsGraphics *AbsGraphics) Intersect(x, y float64, otherGraphics Graphics)
 		otherGraphics.GetGraphicsTy() == GraphicsTyEquip {
 		otherGraphics.(*Equip).Status = StatusTerm
 
-		otherGraphics.(*Equip).WearEquip(pAbsGraphics.sub.(*Tank))
+		pAbsGraphics.sub.(*Tank).WearEquip(otherGraphics.(*Equip))
 
 		// 通知其它端点
 		pApp.pEndpoint.SendGraphicsToAddrs(otherGraphics)

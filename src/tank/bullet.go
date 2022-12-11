@@ -41,8 +41,12 @@ func CreateBullet(pTank *Tank, speed Speed) *Bullet {
 		AbsGraphics: CreateAbsGraphics("", GraphicsTyBullet, location, pTank.Direction, speed),
 		TankId:      pTank.Id,
 	}
-	pBullet.Init(pBullet)
+	pBullet.Init()
 	return pBullet
+}
+
+func (pBullet *Bullet) Init() {
+	pBullet.AbsGraphics.Init(pBullet)
 }
 
 func (pBullet *Bullet) Intersect(x, y float64, otherGraphics Graphics) bool {
