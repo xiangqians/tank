@@ -21,7 +21,8 @@ const (
 	EquipTypeTankInvis                      // 坦克隐形
 )
 
-var EquipTypes []EquipType = []EquipType{EquipTypeTankAcc, EquipTypeBulletAcc}
+var equipTypeIndex int = 0
+var equipTypes []EquipType = []EquipType{EquipTypeTankAcc, EquipTypeBulletAcc}
 
 // 装备最大数量
 const MaxEquipCount uint8 = 10
@@ -42,7 +43,12 @@ func CreateEquip() *Equip {
 }
 
 func RandEquipType() EquipType {
-	return EquipTypes[RandIntn(len(EquipTypes))]
+	if equipTypeIndex >= len(equipTypes) {
+		equipTypeIndex = 0
+	}
+	equipType := equipTypes[equipTypeIndex]
+	equipTypeIndex++
+	return equipType
 }
 
 func EquipGenerator() {

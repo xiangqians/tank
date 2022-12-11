@@ -157,13 +157,12 @@ func (pGame *Game) Update(screen *ebiten.Image) error {
 }
 
 func (pGame *Game) Draw(screen *ebiten.Image) {
+	pGame._Draw(screen)
 	pGame.Draw1(screen)
 }
 
 // 游戏界面闪烁解决了，但出现另一个问题：图形渲染变慢了。
 func (pGame *Game) Draw1(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("LocalAddr: %v\nName     : %v\nHP       : %v", pApp.pReg.LocalAddr, pGame.pTank.GetName(), pGame.pTank.GetHp()))
-
 	// 阻塞获取 chanel 中的 map
 	graphicsMap := <-pGame.GraphicsMapChan
 
@@ -185,8 +184,6 @@ func (pGame *Game) Draw1(screen *ebiten.Image) {
 
 // 会出现游戏界面闪烁问题
 func (pGame *Game) Draw0(screen *ebiten.Image) {
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("LocalAddr: %v\nName     : %v\nHP       : %v", pApp.pReg.LocalAddr, pGame.pTank.GetName(), pGame.pTank.GetHp()))
-
 	select {
 	// 非阻塞获取 chanel 中的 map
 	case graphicsMap := <-pGame.GraphicsMapChan:
@@ -205,4 +202,33 @@ func (pGame *Game) Draw0(screen *ebiten.Image) {
 		pGame.EquipCount = equipCount
 	default:
 	}
+}
+
+func (pGame *Game) _Draw(screen *ebiten.Image) {
+	// 坦克速度描述
+	ts, _ := SpeedString(DefaultTankSpeed)
+	if pGame.pTank.Speed != DefaultTankSpeed {
+		str, _ := SpeedString(pGame.pTank.Speed)
+		ts = fmt.Sprintf("%v -> %v (%v s)", ts, str, int64(pGame.pTank.TankAccEquipEffectiveTime)-(time.Now().UnixNano()-pGame.pTank.TankAccEquipGetTimestamp)/int64(time.Second))
+	}
+
+	// 子弹速度描述
+	bs, _ := SpeedString(DefaultBulletSpeed)
+	if pGame.pTank.BulletSpeed != DefaultBulletSpeed {
+		str, _ := SpeedString(pGame.pTank.BulletSpeed)
+		bs = fmt.Sprintf("%v -> %v (%v s)", bs, str, int64(pGame.pTank.BulletAccEquipEffectiveTime)-(time.Now().UnixNano()-pGame.pTank.BulletAccEquipGetTimestamp)/int64(time.Second))
+	}
+
+	ebitenutil.DebugPrint(screen,
+		fmt.Sprintf(""+
+			"LocalAddr : %v\n"+
+			"Name      : %v\n"+
+			"TS        : %v\n"+
+			"BS        : %v\n"+
+			"HP        : %v\n",
+			pApp.pReg.LocalAddr,
+			pGame.pTank.GetName(),
+			ts,
+			bs,
+			pGame.pTank.GetHp()))
 }

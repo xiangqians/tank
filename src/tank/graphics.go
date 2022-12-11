@@ -80,6 +80,18 @@ func GetSpeedByName(name string) (Speed, error) {
 	return 0, errors.New("unknown name")
 }
 
+func SpeedString(speed Speed) (string, error) {
+	switch speed {
+	case SpeedSlow:
+		return "Slow", nil
+	case SpeedNormal:
+		return "Normal", nil
+	case SpeedFast:
+		return "Fast", nil
+	}
+	return "", errors.New("unknown value")
+}
+
 // 图形
 type Graphics interface {
 	// id
