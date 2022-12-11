@@ -135,10 +135,18 @@ func DeserializeBytesToGraphics(bytes []byte) Graphics {
 	var graphics Graphics = nil
 	switch pAbsGraphics.GraphicsTy {
 	case GraphicsTyTank:
-		pTank := &Tank{AbsGraphics: pAbsGraphics}
-		pTank.Timestamp = time.Now().UnixNano()
-		pTank.Init()
-		graphics = pTank
+		//pTank := &Tank{AbsGraphics: pAbsGraphics}
+		//pTank.Timestamp = time.Now().UnixNano()
+		//pTank.Init()
+		//graphics = pTank
+
+		pTank := &Tank{}
+		err := Deserialize(bytes, pTank)
+		if err == nil {
+			pTank.Timestamp = time.Now().UnixNano()
+			pTank.Init()
+			graphics = pTank
+		}
 
 	case GraphicsTyBullet:
 		pBullet := &Bullet{AbsGraphics: pAbsGraphics}
@@ -257,6 +265,13 @@ func (pAbsGraphics *AbsGraphics) GetImage() *ebiten.Image {
 func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
 	if pAbsGraphics.Status == StatusTerm {
 		return errors.New(fmt.Sprintf("the %v has been terminated", pAbsGraphics.Id))
+	}
+
+	// 不绘制隐形坦克（除了当前坦克外）
+	if pAbsGraphics.GraphicsTy == GraphicsTyTank &&
+		pAbsGraphics.Id != pApp.pGame.pTank.Id &&
+		reflect.ValueOf(pAbsGraphics.sub).Interface().(*Tank).TankInvisFlag {
+		return nil
 	}
 
 	// 绘制图形

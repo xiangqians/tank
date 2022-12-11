@@ -77,6 +77,8 @@ func (pTank *Tank) VerifyEquip() {
 
 		// 卸下装备
 		log.Printf("RemoveEquip: TankInvis\n")
+
+		pApp.pEndpoint.SendGraphicsToAddrs(pTank)
 	}
 }
 
@@ -97,18 +99,18 @@ func (pTank *Tank) WearEquip(pEquip *Equip) {
 	case EquipTypeBulletAcc:
 		pTank.BulletAccEquipGetTimestamp = time.Now().UnixNano()
 		pTank.BulletSpeed = SpeedFast
-		log.Printf("WearEquip: BulletAcc\n")
+		//log.Printf("WearEquip: BulletAcc\n")
 
-	// 生命值 +10
+	// 生命值 +2
 	case EquipTypeHpInc:
-		pTank.Hp += 10
-		log.Printf("WearEquip: HpInc\n")
+		pTank.Hp += 2
+		//log.Printf("WearEquip: HpInc\n")
 
 	// 坦克隐形
 	case EquipTypeTankInvis:
 		pTank.TankInvisEquipGetTimestamp = time.Now().UnixNano()
 		pTank.TankInvisFlag = true
-		log.Printf("WearEquip: TankInvis\n")
+		//log.Printf("WearEquip: TankInvis\n")
 	}
 
 }

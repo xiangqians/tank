@@ -25,7 +25,7 @@ var equipTypeIndex = 0
 var equipTypes = []EquipType{EquipTypeTankAcc, EquipTypeBulletAcc, EquipTypeHpInc, EquipTypeTankInvis}
 
 // 装备最大数量
-const MaxEquipCount uint8 = 10
+const MaxEquipCount uint8 = 5
 
 type Equip struct {
 	*AbsGraphics
@@ -52,11 +52,8 @@ func RandEquipType() EquipType {
 }
 
 func EquipGenerator() {
-	//time.Sleep(10 * time.Second)
 	for {
-		//time.Sleep(time.Duration(RandIntn(60)) * time.Second)
-		time.Sleep(time.Duration(RandIntn(6)) * time.Second)
-		//time.Sleep(time.Duration(10) * time.Millisecond)
+		time.Sleep(time.Duration(RandIntn(10)) * time.Second)
 		if pApp.pGame.EquipCount < MaxEquipCount {
 			pEquip := CreateEquip()
 
