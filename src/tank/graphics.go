@@ -113,6 +113,40 @@ type Graphics interface {
 	Draw(screen *ebiten.Image) error
 }
 
+func DeserializeBytesToGraphics(bytes []byte) Graphics {
+	pAbsGraphics := &AbsGraphics{}
+	err := Deserialize(bytes, pAbsGraphics)
+	if err != nil {
+		return nil
+	}
+
+	var graphics Graphics = nil
+	switch pAbsGraphics.GraphicsTy {
+	case GraphicsTyTank:
+		pTank := &Tank{AbsGraphics: pAbsGraphics}
+		pTank.Timestamp = time.Now().UnixNano()
+		pTank.Init(pTank)
+		graphics = pTank
+
+	case GraphicsTyBullet:
+		pBullet := &Bullet{AbsGraphics: pAbsGraphics}
+		pBullet.Timestamp = time.Now().UnixNano()
+		pBullet.Init(pBullet)
+		graphics = pBullet
+
+	case GraphicsTyEquip:
+		pEquip := &Equip{}
+		err := Deserialize(bytes, pEquip)
+		if err == nil {
+			pEquip.Timestamp = time.Now().UnixNano()
+			pEquip.Init(pEquip)
+			graphics = pEquip
+		}
+	}
+
+	return graphics
+}
+
 // 图形
 type AbsGraphics struct {
 	Id         string        `json:"id"`         // id
@@ -390,6 +424,8 @@ func (pAbsGraphics *AbsGraphics) Intersect(x, y float64, otherGraphics Graphics)
 		pAbsGraphics.Id == pApp.pGame.pTank.Id &&
 		otherGraphics.GetGraphicsTy() == GraphicsTyEquip {
 		otherGraphics.(*Equip).Status = StatusTerm
+
+		otherGraphics.(*Equip).WearEquip(pAbsGraphics.sub.(*Tank))
 
 		// 通知其它端点
 		pApp.pEndpoint.SendGraphicsToAddrs(otherGraphics)

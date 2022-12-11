@@ -99,14 +99,13 @@ func (pEndpoint *Endpoint) receiveRegDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
 	pEndpoint.pAddrs = append(pEndpoint.pAddrs, pAddr)
 
 	// 反序列注册者坦克信息
-	pAbsGraphics := &AbsGraphics{}
-	err := Deserialize(pDgPkt.Data, pAbsGraphics)
-	if err == nil {
+	graphics := DeserializeBytesToGraphics(pDgPkt.Data)
+	if graphics != nil {
 		// 将注册者坦克信息添加到图形集
-		pApp.pGame.AddAbsGraphics(pAbsGraphics)
+		pApp.pGame.AddGraphics(graphics)
 
 		// 让所有端都发现新上线坦克
-		pEndpoint.SendGraphicsToAddrs(pAbsGraphics)
+		pEndpoint.SendGraphicsToAddrs(graphics)
 	}
 	//log.Printf("reg AbsGraphics: %v\n", *pAbsGraphics)
 
@@ -169,15 +168,17 @@ func (pEndpoint *Endpoint) receiveHbDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
 
 // 接收到数据包
 func (pEndpoint *Endpoint) receiveDataDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) {
-	pAbsGraphics := &AbsGraphics{}
-	err := Deserialize(pDgPkt.Data, pAbsGraphics)
-	if err == nil {
-		//log.Printf("addr: %v, graphics: %v\n", pAddr.String(), pAbsGraphics)
-		pApp.pGame.AddAbsGraphics(pAbsGraphics)
+	graphics := DeserializeBytesToGraphics(pDgPkt.Data)
+	if graphics != nil {
+		pApp.pGame.AddGraphics(graphics)
 	}
 }
 
 func (pEndpoint *Endpoint) SendGraphicsToAddrs(graphics Graphics) {
+	if graphics == nil {
+		return
+	}
+
 	buf, err := Serialize(graphics)
 	if err != nil {
 		return
@@ -190,6 +191,10 @@ func (pEndpoint *Endpoint) SendGraphicsToAddrs(graphics Graphics) {
 }
 
 func (pEndpoint *Endpoint) SendGraphics(graphics Graphics, addr *net.UDPAddr) {
+	if graphics == nil {
+		return
+	}
+
 	buf, err := Serialize(graphics)
 	if err != nil {
 		return

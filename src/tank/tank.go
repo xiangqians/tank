@@ -11,6 +11,7 @@ import (
 
 type Tank struct {
 	*AbsGraphics
+	EquipMap map[string]*Equip `json:"equipMap"` // 坦克装备表
 }
 
 func CreateTank(location Location, direction Direction, speed Speed) *Tank {

@@ -22,7 +22,7 @@ type Game struct {
 var DefaultTankSpeed = SpeedNormal
 
 // 子弹默认速度
-var DefaultBulletSpeed = SpeedSlow
+var DefaultBulletSpeed = SpeedNormal
 
 func (pGame *Game) Init() {
 	pGame.GraphicsMap = make(map[string]Graphics, 8)
@@ -31,7 +31,7 @@ func (pGame *Game) Init() {
 
 	// TANK
 	pGame.pTank = CreateDefaultTank()
-	pGame.AddGraphics(pGame.pTank)
+	pGame.AddGraphics0(pGame.pTank)
 
 	// test
 	//pGame.AddGraphics(CreateEquip())
@@ -78,32 +78,7 @@ func (pGame *Game) Clean() {
 	}
 }
 
-func (pGame *Game) AddAbsGraphics(pAbsGraphics *AbsGraphics) {
-	var graphics Graphics = nil
-	switch pAbsGraphics.GraphicsTy {
-	case GraphicsTyTank:
-		pTank := &Tank{AbsGraphics: pAbsGraphics}
-		pTank.Timestamp = time.Now().UnixNano()
-		pTank.Init(pTank)
-		graphics = pTank
-
-	case GraphicsTyBullet:
-		pBullet := &Bullet{AbsGraphics: pAbsGraphics}
-		pBullet.Timestamp = time.Now().UnixNano()
-		pBullet.Init(pBullet)
-		graphics = pBullet
-
-	case GraphicsTyEquip:
-		pEquip := &Equip{AbsGraphics: pAbsGraphics}
-		pEquip.Timestamp = time.Now().UnixNano()
-		pEquip.Init(pEquip)
-		graphics = pEquip
-	}
-
-	if graphics == nil {
-		return
-	}
-
+func (pGame *Game) AddGraphics(graphics Graphics) {
 	// 如果是当前坦克时
 	if graphics.GetId() == pGame.pTank.GetId() {
 		pGame.pTank.Status = graphics.GetStatus()
@@ -111,11 +86,10 @@ func (pGame *Game) AddAbsGraphics(pAbsGraphics *AbsGraphics) {
 		return
 	}
 
-	// add
-	pGame.AddGraphics(graphics)
+	pGame.AddGraphics0(graphics)
 }
 
-func (pGame *Game) AddGraphics(graphics Graphics) {
+func (pGame *Game) AddGraphics0(graphics Graphics) {
 	// 阻塞获取 chanel 中的 map
 	graphicsMap := <-pGame.GraphicsMapChan
 
@@ -183,6 +157,32 @@ func (pGame *Game) Update(screen *ebiten.Image) error {
 }
 
 func (pGame *Game) Draw(screen *ebiten.Image) {
+	pGame.Draw1(screen)
+}
+
+func (pGame *Game) Draw1(screen *ebiten.Image) {
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("LocalAddr: %v\nName     : %v\nHP       : %v", pApp.pReg.LocalAddr, pGame.pTank.GetName(), pGame.pTank.GetHp()))
+
+	// 阻塞获取 chanel 中的 map
+	graphicsMap := <-pGame.GraphicsMapChan
+
+	// 再将 map 添加到 channel
+	defer func() { pGame.GraphicsMapChan <- graphicsMap }()
+
+	var equipCount uint8 = 0
+	for _, graphics := range graphicsMap {
+		graphics.VerifyTimestamp()
+		if graphics.GetStatus() != StatusTerm {
+			if graphics.GetGraphicsTy() == GraphicsTyEquip {
+				equipCount++
+			}
+			graphics.Draw(screen)
+		}
+	}
+	pGame.EquipCount = equipCount
+}
+
+func (pGame *Game) Draw0(screen *ebiten.Image) {
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("LocalAddr: %v\nName     : %v\nHP       : %v", pApp.pReg.LocalAddr, pGame.pTank.GetName(), pGame.pTank.GetHp()))
 
 	select {
