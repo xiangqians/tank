@@ -34,10 +34,10 @@ func (pGame *Game) Init() {
 
 	// TANK
 	pGame.pTank = CreateDefaultTank()
-	pGame.AddGraphics0(pGame.pTank)
+	pGame.AddGraphics(pGame.pTank)
 
 	// test
-	//pGame.AddGraphics0(CreateEquip())
+	//pGame.AddGraphics(CreateEquip())
 
 	// 装备生成器
 	go EquipGenerator()
@@ -84,15 +84,14 @@ func (pGame *Game) Clean() {
 func (pGame *Game) AddGraphics(graphics Graphics) {
 	// 如果是当前坦克时
 	if graphics.GetId() == pGame.pTank.GetId() {
+		pTank := graphics.(*Tank)
 		pGame.pTank.Status = graphics.GetStatus()
 		pGame.pTank.Hp = graphics.GetHp()
-		return
+		pGame.pTank.BulletSpeed = pTank.BulletSpeed
+		pGame.pTank.TankInvisFlag = pTank.TankInvisFlag
+		graphics = pGame.pTank
 	}
 
-	pGame.AddGraphics0(graphics)
-}
-
-func (pGame *Game) AddGraphics0(graphics Graphics) {
 	// 阻塞获取 chanel 中的 map
 	graphicsMap := <-pGame.GraphicsMapChan
 

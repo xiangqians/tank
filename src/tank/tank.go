@@ -120,6 +120,8 @@ func (pTank *Tank) Reset() {
 	pTank.Hp = DefaultHp
 	x, y := RandXY()
 	pTank.Location = Location{float64(x), float64(y)}
+	pTank.BulletSpeed = DefaultBulletSpeed
+	pTank.TankInvisFlag = false
 	pTank.Status = StatusRun
 }
 
