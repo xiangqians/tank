@@ -14,7 +14,7 @@ $ go run main.go
 -Port 62819
 ```
 
-### 设置坦克速度
+### ~~设置坦克速度~~
 
 ```shell
 # 慢
@@ -25,7 +25,7 @@ $ go run main.go
 -DefaultTankSpeed Fast
 ```
 
-### 设置子弹速度
+### ~~设置子弹速度~~
 
 ```shell
 # 慢
