@@ -39,7 +39,7 @@ type Reg struct {
 func (pReg *Reg) Init() {
 	pReg.ArcadeFont = CreateFontFace(16, 72)
 	pReg.TitleFont = CreateFontFace(64, 72)
-	pReg.InputFlag = InputFlagIp
+	pReg.InputFlag = InputFlagName
 
 	go func() {
 		for pApp.appStep == AppStepReg {
@@ -52,6 +52,8 @@ func (pReg *Reg) Init() {
 func (pReg *Reg) SetLocalAddr(localAddr string) {
 	pReg.LocalAddr = localAddr
 	pReg.Ip = strings.Split(pReg.LocalAddr, ":")[0]
+	pReg.Ip = pReg.Ip[0:strings.LastIndex(pReg.Ip, ".")+1] + "*"
+	pReg.Port = "62819"
 }
 
 func (pReg *Reg) AppendName(a string) {
@@ -149,32 +151,47 @@ func (pReg *Reg) SendRegDgPkt() {
 
 	pApp.pGame.pTank.Name = pReg.Name
 
-	ip := pReg.Ip
-	var ipArr []string = nil
-	if len(ip) > 0 {
-		ipArr = strings.Split(ip, ".")
-	}
-	if len(pReg.Port) > 0 && len(ip) > 0 && len(ipArr) == 4 {
-		pDgPkt := &DgPkt{}
-		pDgPkt.DgPktTy = DgPktTyReg
-		buf, err := Serialize(pApp.pGame.pTank)
-		if err == nil {
-			pDgPkt.Data = buf
+	// 异步注册
+	go func() {
+		ip := pReg.Ip
+		var ipArr []string = nil
+		if len(ip) > 0 {
+			ipArr = strings.Split(ip, ".")
 		}
+		if len(pReg.Port) > 0 && len(ip) > 0 && len(ipArr) == 4 {
+			pDgPkt := &DgPkt{}
+			pDgPkt.DgPktTy = DgPktTyReg
+			buf, err := Serialize(pApp.pGame.pTank)
+			if err == nil {
+				pDgPkt.Data = buf
+			}
 
-		port, _ := strconv.ParseInt(pReg.Port, 10, 64)
-		a, _ := strconv.ParseInt(ipArr[0], 10, 64)
-		b, _ := strconv.ParseInt(ipArr[1], 10, 64)
-		c, _ := strconv.ParseInt(ipArr[2], 10, 64)
-		d, _ := strconv.ParseInt(ipArr[3], 10, 64)
-		addr := &net.UDPAddr{
-			IP:   net.IPv4(byte(a), byte(b), byte(c), byte(d)),
-			Port: int(port),
+			var f = func(a, b, c, d, port int64) {
+				addr := &net.UDPAddr{
+					IP:   net.IPv4(byte(a), byte(b), byte(c), byte(d)),
+					Port: int(port),
+				}
+				//log.Printf("input Ip: %v, Port: %v\n", pReg.Ip, pReg.Port)
+				log.Printf("reg addr: %v\n", addr.String())
+				pApp.pEndpoint.SendDgPkt(pDgPkt, addr)
+			}
+
+			port, _ := strconv.ParseInt(pReg.Port, 10, 64)
+			a, _ := strconv.ParseInt(ipArr[0], 10, 64)
+			b, _ := strconv.ParseInt(ipArr[1], 10, 64)
+			c, _ := strconv.ParseInt(ipArr[2], 10, 64)
+			if ipArr[3] == "*" {
+				var d int64
+				for d = 2; d < 255; d++ {
+					f(a, b, c, d, port)
+				}
+			} else {
+				d, _ := strconv.ParseInt(ipArr[3], 10, 64)
+				f(a, b, c, d, port)
+			}
 		}
-		log.Printf("input Ip: %v, Port: %v\n", pReg.Ip, pReg.Port)
-		log.Printf("reg addr: %v\n", addr.String())
-		pApp.pEndpoint.SendDgPkt(pDgPkt, addr)
-	}
+	}()
+
 	pApp.appStep = AppStepGame
 }
 
