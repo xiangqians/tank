@@ -39,7 +39,7 @@ func (pGame *Game) Init() {
 	// test
 	//pGame.AddGraphics0(CreateEquip())
 
-	// 装配生成器
+	// 装备生成器
 	go EquipGenerator()
 
 	// 清理

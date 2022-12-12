@@ -280,6 +280,35 @@ func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
 	op.GeoM.Translate(location.X, location.Y)
 	err := screen.DrawImage(pAbsGraphics.pImage, op)
 
+	// 绘制装备类型
+	if pAbsGraphics.GraphicsTy == GraphicsTyEquip {
+		x, y := int(location.X), int(location.Y)
+		y -= 6
+
+		t := ""
+		switch pAbsGraphics.sub.(*Equip).EquipType {
+		// 坦克加速
+		case EquipTypeTankAcc:
+			t = "TS"
+
+		// 子弹加速
+		case EquipTypeBulletAcc:
+			t = "BS"
+
+		// HP增加
+		case EquipTypeHpInc:
+			t = "HI"
+
+		// 坦克隐形
+		case EquipTypeTankInvis:
+			t = "TI"
+
+		default:
+			t = "UK"
+		}
+		text.Draw(screen, t, tankMdFont, x, y, color.White)
+	}
+
 	// 绘制坦克元数据（除了当前坦克外）
 	if err == nil &&
 		pAbsGraphics.Id != pApp.pGame.pTank.Id &&

@@ -171,9 +171,11 @@ func (pReg *Reg) SendRegDgPkt() {
 					IP:   net.IPv4(byte(a), byte(b), byte(c), byte(d)),
 					Port: int(port),
 				}
-				//log.Printf("input Ip: %v, Port: %v\n", pReg.Ip, pReg.Port)
-				log.Printf("reg addr: %v\n", addr.String())
-				pApp.pEndpoint.SendDgPkt(pDgPkt, addr)
+
+				if pApp.pEndpoint.SendDgPkt(pDgPkt, addr) {
+					//log.Printf("input Ip: %v, Port: %v\n", pReg.Ip, pReg.Port)
+					log.Printf("reg addr: %v\n", addr.String())
+				}
 			}
 
 			port, _ := strconv.ParseInt(pReg.Port, 10, 64)

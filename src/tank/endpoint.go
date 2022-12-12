@@ -225,11 +225,17 @@ func (pEndpoint *Endpoint) SendDgPktToAddrs(pDgPkt *DgPkt) {
 	}
 }
 
-func (pEndpoint *Endpoint) SendDgPkt(pDgPkt *DgPkt, addr *net.UDPAddr) {
+func (pEndpoint *Endpoint) SendDgPkt(pDgPkt *DgPkt, addr *net.UDPAddr) bool {
+	if UDPAddrEqual(addr, pEndpoint.pLocalAddr) {
+		return false
+	}
+
 	buf, err := Serialize(pDgPkt)
 	if err == nil {
-		pEndpoint.Write(buf, addr)
+		_, err = pEndpoint.Write(buf, addr)
 	}
+
+	return err == nil
 }
 
 // 写入数据
@@ -238,22 +244,24 @@ func (pEndpoint *Endpoint) Write(data []byte, addr *net.UDPAddr) (int, error) {
 }
 
 func UDPAddrEqual(v1, v2 *net.UDPAddr) bool {
-	if v1.Port != v2.Port {
-		return false
-	}
+	//if v1.Port != v2.Port {
+	//	return false
+	//}
+	//
+	//ip1, ip2 := v1.IP, v2.IP
+	//if len(ip1) != len(ip2) {
+	//	return false
+	//}
+	//
+	//for i, length := 0, len(ip1); i < length; i++ {
+	//	if ip1[i] != ip2[i] {
+	//		return false
+	//	}
+	//}
+	//
+	//return true
 
-	ip1, ip2 := v1.IP, v1.IP
-	if len(ip1) != len(ip2) {
-		return false
-	}
-
-	for i, length := 0, len(ip1); i < length; i++ {
-		if ip1[i] != ip2[i] {
-			return false
-		}
-	}
-
-	return true
+	return v1.String() == v2.String()
 }
 
 func LocalIp() net.IP {
