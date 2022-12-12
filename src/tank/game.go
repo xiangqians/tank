@@ -148,7 +148,9 @@ func (pGame *Game) Update(screen *ebiten.Image) error {
 	}
 
 	// space
-	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+	//if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+	// 支持长按空格键发射子弹
+	if pApp.IsSpaceKeyPressed() {
 		//log.Printf("space\n")
 		pGame.pTank.Fire()
 	}

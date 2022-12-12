@@ -64,6 +64,9 @@ type App struct {
 	appStep                AppStep   // App步骤
 	prevKeyPressedUnixNano int64     // 上一次按键 unix nano
 	curKeyPressedUnixNano  int64     // 当前按键 unix nano
+
+	prevSpaceKeyPressedUnixNano int64 // 上一次按键 unix nano
+	curSpaceKeyPressedUnixNano  int64 // 当前按键 unix nano
 }
 
 func (pApp *App) Init() {
@@ -96,6 +99,18 @@ func (pApp *App) IsKeyPressed(key ebiten.Key) bool {
 		pApp.curKeyPressedUnixNano = time.Now().UnixNano()
 		result := pApp.curKeyPressedUnixNano-pApp.prevKeyPressedUnixNano >= 10
 		pApp.prevKeyPressedUnixNano = pApp.curKeyPressedUnixNano
+		return result
+	}
+	return false
+}
+
+func (pApp *App) IsSpaceKeyPressed() bool {
+	if ebiten.IsKeyPressed(ebiten.KeySpace) {
+		pApp.curSpaceKeyPressedUnixNano = time.Now().UnixNano()
+		result := pApp.curSpaceKeyPressedUnixNano-pApp.prevSpaceKeyPressedUnixNano >= 150*int64(time.Millisecond)
+		if result {
+			pApp.prevSpaceKeyPressedUnixNano = pApp.curSpaceKeyPressedUnixNano
+		}
 		return result
 	}
 	return false
