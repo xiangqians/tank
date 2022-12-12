@@ -143,8 +143,11 @@ func RandXY() (int, int) {
 
 func Run() {
 	// args
+	//var defaultPort int
 	var defaultTankSpeed string
 	var defaultBulletSpeed string
+	// -Port 62819
+	flag.IntVar(&DefaultEndpointPort, "Port", 0, "Set Default Port")
 	// -DefaultTankSpeed Slow
 	flag.StringVar(&defaultTankSpeed, "DefaultTankSpeed", "SpeedNormal", "Set Tank Default Speed")
 	// -DefaultBulletSpeed Slow

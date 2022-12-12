@@ -18,6 +18,9 @@ type Game struct {
 	EquipCount      uint8                    // 装备数量
 }
 
+// 端点默认监听端口
+var DefaultEndpointPort int = 0
+
 // 坦克默认速度
 var DefaultTankSpeed = SpeedNormal
 

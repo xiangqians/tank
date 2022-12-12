@@ -37,7 +37,7 @@ type Endpoint struct {
 
 func (pEndpoint *Endpoint) Listen() {
 	// UDP Listen
-	conn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(0, 0, 0, 0), Port: 0})
+	conn, err := net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4(0, 0, 0, 0), Port: DefaultEndpointPort})
 	if err != nil {
 		panic(err)
 	}
