@@ -167,14 +167,14 @@ func (pReg *Reg) SendRegDgPkt() {
 			}
 
 			var f = func(a, b, c, d, port int64) {
-				addr := &net.UDPAddr{
+				pAddr := &net.UDPAddr{
 					IP:   net.IPv4(byte(a), byte(b), byte(c), byte(d)),
 					Port: int(port),
 				}
 
-				if pApp.pEndpoint.SendDgPkt(pDgPkt, addr) {
+				if pApp.pEndpoint.SendDgPkt(pDgPkt, pAddr) {
 					//log.Printf("input Ip: %v, Port: %v\n", pReg.Ip, pReg.Port)
-					log.Printf("reg addr: %v\n", addr.String())
+					log.Printf("reg addr: %v\n", pAddr.String())
 				}
 			}
 

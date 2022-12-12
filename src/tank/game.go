@@ -8,6 +8,7 @@ import (
 	"github.com/hajimehoshi/ebiten"
 	"github.com/hajimehoshi/ebiten/ebitenutil"
 	"github.com/hajimehoshi/ebiten/inpututil"
+	"log"
 	"time"
 )
 
@@ -153,7 +154,7 @@ func (pGame *Game) Update(screen *ebiten.Image) error {
 	//if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
 	// 支持长按空格键发射子弹
 	if pApp.IsSpaceKeyPressed() {
-		//log.Printf("space\n")
+		log.Printf("space\n")
 		pGame.pTank.Fire()
 	}
 

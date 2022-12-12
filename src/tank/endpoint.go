@@ -190,7 +190,7 @@ func (pEndpoint *Endpoint) SendGraphicsToAddrs(graphics Graphics) {
 	pEndpoint.SendDgPktToAddrs(pDgPkt)
 }
 
-func (pEndpoint *Endpoint) SendGraphics(graphics Graphics, addr *net.UDPAddr) {
+func (pEndpoint *Endpoint) SendGraphics(graphics Graphics, pAddr *net.UDPAddr) {
 	if graphics == nil {
 		return
 	}
@@ -203,7 +203,7 @@ func (pEndpoint *Endpoint) SendGraphics(graphics Graphics, addr *net.UDPAddr) {
 	pDgPkt := &DgPkt{}
 	pDgPkt.DgPktTy = DgPktTyData
 	pDgPkt.Data = buf
-	pEndpoint.SendDgPkt(pDgPkt, addr)
+	pEndpoint.SendDgPkt(pDgPkt, pAddr)
 }
 
 func (pEndpoint *Endpoint) SendDgPktToAddrs(pDgPkt *DgPkt) {
@@ -212,35 +212,51 @@ func (pEndpoint *Endpoint) SendDgPktToAddrs(pDgPkt *DgPkt) {
 		return
 	}
 
+	// debug
+	//str := ""
+	//var count = 0
+
 	for i, length := 0, len(pEndpoint.pAddrs); i < length; i++ {
-		addr := pEndpoint.pAddrs[i]
-		if UDPAddrEqual(addr, pEndpoint.pLocalAddr) {
+		pAddr := pEndpoint.pAddrs[i]
+		if UDPAddrEqual(pAddr, pEndpoint.pLocalAddr) {
 			continue
 		}
 
-		_, err := pEndpoint.Write(buf, addr)
+		_, err := pEndpoint.Write(buf, pAddr)
 		if err != nil {
 			log.Printf("write err, %v\n", err)
 		}
+
+		// debug
+		//if str != "" {
+		//	str += ","
+		//}
+		//str += pAddr.String()
+		//count++
 	}
+
+	// debug
+	//if count > 0 {
+	//	log.Printf("Send to %v endpoints: %v\n", count, str)
+	//}
 }
 
-func (pEndpoint *Endpoint) SendDgPkt(pDgPkt *DgPkt, addr *net.UDPAddr) bool {
-	if UDPAddrEqual(addr, pEndpoint.pLocalAddr) {
+func (pEndpoint *Endpoint) SendDgPkt(pDgPkt *DgPkt, pAddr *net.UDPAddr) bool {
+	if UDPAddrEqual(pAddr, pEndpoint.pLocalAddr) {
 		return false
 	}
 
 	buf, err := Serialize(pDgPkt)
 	if err == nil {
-		_, err = pEndpoint.Write(buf, addr)
+		_, err = pEndpoint.Write(buf, pAddr)
 	}
 
 	return err == nil
 }
 
 // 写入数据
-func (pEndpoint *Endpoint) Write(data []byte, addr *net.UDPAddr) (int, error) {
-	return pEndpoint.pConn.WriteToUDP(data, addr)
+func (pEndpoint *Endpoint) Write(data []byte, pAddr *net.UDPAddr) (int, error) {
+	return pEndpoint.pConn.WriteToUDP(data, pAddr)
 }
 
 func UDPAddrEqual(v1, v2 *net.UDPAddr) bool {

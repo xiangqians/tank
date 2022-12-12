@@ -95,6 +95,12 @@ func (pTank *Tank) WearEquip(pEquip *Equip) {
 		pTank.Speed = SpeedFast
 		log.Printf("WearEquip: TankAcc\n")
 
+	// 坦克隐形
+	case EquipTypeTankInvis:
+		pTank.TankInvisEquipGetTimestamp = time.Now().UnixNano()
+		pTank.TankInvisFlag = true
+		//log.Printf("WearEquip: TankInvis\n")
+
 	// 子弹加速
 	case EquipTypeBulletAcc:
 		pTank.BulletAccEquipGetTimestamp = time.Now().UnixNano()
@@ -106,11 +112,6 @@ func (pTank *Tank) WearEquip(pEquip *Equip) {
 		pTank.Hp += 2
 		//log.Printf("WearEquip: HpInc\n")
 
-	// 坦克隐形
-	case EquipTypeTankInvis:
-		pTank.TankInvisEquipGetTimestamp = time.Now().UnixNano()
-		pTank.TankInvisFlag = true
-		//log.Printf("WearEquip: TankInvis\n")
 	}
 
 }

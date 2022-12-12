@@ -13,12 +13,9 @@ type EquipType int8
 
 const (
 	EquipTypeTankAcc   EquipType = iota + 1 // 坦克加速
-	EquipTypeTankDec                        // 坦克减速
-	EquipTypeBulletAcc                      // 子弹加速
-	EquipTypeBulletDec                      // 子弹减速
-	EquipTypeHpInc                          // HP增加
-	EquipTypeHpDec                          // HP减少
 	EquipTypeTankInvis                      // 坦克隐形
+	EquipTypeBulletAcc                      // 子弹加速
+	EquipTypeHpInc                          // HP增加
 )
 
 var equipTypeIndex = 0

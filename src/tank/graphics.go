@@ -291,17 +291,17 @@ func (pAbsGraphics *AbsGraphics) Draw(screen *ebiten.Image) error {
 		case EquipTypeTankAcc:
 			t = "TS"
 
+		// 坦克隐形
+		case EquipTypeTankInvis:
+			t = "TI"
+
 		// 子弹加速
 		case EquipTypeBulletAcc:
 			t = "BS"
 
 		// HP增加
 		case EquipTypeHpInc:
-			t = "HI"
-
-		// 坦克隐形
-		case EquipTypeTankInvis:
-			t = "TI"
+			t = "HP"
 
 		default:
 			t = "UK"
