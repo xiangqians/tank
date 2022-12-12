@@ -7,12 +7,8 @@ package tank
 
 import (
 	"github.com/hajimehoshi/ebiten"
-	"sync"
 	"time"
 )
-
-// 互斥锁
-var bulletLock sync.Mutex
 
 type Bullet struct {
 	*AbsGraphics
